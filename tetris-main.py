@@ -254,6 +254,10 @@ class TetrisGameplay:
             0,  # 13, Combo Bonus
             0   # 14, Back-to-Back bonus
         ]
+        self.score_up = 0
+        self.for_what_id = 0
+        self.for_what_score = ["SINGLE", "DOUBLE", "TRIPLE", "QUAD", "T-SPIN MINI 0L", "T-SPIN MINI 1L", "T-SPIN MINI 2L", "T-SPIN 0L", "T-SPIN 1L", "T-SPIN 2L", "T-SPIN 3L"]
+        self.for_what_delay = 0
         self.cleared_lines = [
             0,  # Single
             0,  # Double
@@ -270,6 +274,8 @@ class TetrisGameplay:
             0   # O piece
         ]
         self.game_time = 0
+        self.combo = -1
+        self.back_to_back = -1
         self.next_queue = []
         if self.seven_bag_random:
             self.next_queue = [0, 1, 2, 3, 4, 5, 6]
@@ -284,7 +290,6 @@ class TetrisGameplay:
         self.spin_is_last_move = False
         self.spin_is_kick_t_piece = False
         self.current_spin_id = 0
-        self.pieces[self.current_id] += 1
         self.lock_delay_run = False
         self.lock_delay_frames = 30
         self.level = level
@@ -301,7 +306,6 @@ class TetrisGameplay:
         self.hold_locked = False
         self.spin_is_last_move = False
         self.spin_is_kick_t_piece = False
-        self.pieces[self.current_id] += 1
         self.current_spin_id = 0
         self.next_queue.pop(0)
         if len(self.next_queue) == self.next_length:
@@ -335,7 +339,7 @@ class TetrisGameplay:
 
     def clear_lines(self):
         cleared = 0
-        frames_delay = 0
+        difficult = False
         t_spin = False
         t_spin_mini = False
         height = None
@@ -379,34 +383,76 @@ class TetrisGameplay:
 
         if cleared > 0:
             self.cleared_lines[cleared - 1] += cleared
+            self.combo += 1
+            self.score_up = 0
             if t_spin:
+                difficult = True
                 if cleared == 1:
                     self.score[10] += 800 * (min(self.level, 29) + 1)
+                    self.score_up += 800 * (min(self.level, 29) + 1)
+                    self.for_what_id = 8
                 elif cleared == 2:
                     self.score[11] += 1200 * (min(self.level, 29) + 1)
+                    self.score_up += 1200 * (min(self.level, 29) + 1)
+                    self.for_what_id = 9
                 elif cleared == 3:
                     self.score[12] += 1600 * (min(self.level, 29) + 1)
+                    self.score_up += 1600 * (min(self.level, 29) + 1)
+                    self.for_what_id = 10
             elif t_spin_mini:
+                difficult = True
                 if cleared == 1:
                     self.score[7] += 200 * (min(self.level, 29) + 1)
+                    self.score_up += 200 * (min(self.level, 29) + 1)
+                    self.for_what_id = 5
                 elif cleared == 2:
                     self.score[8] += 400 * (min(self.level, 29) + 1)
-            if cleared == 1:
-                self.score[2] += 100 * (min(self.level, 29) + 1)
-            elif cleared == 2:
-                self.score[3] += 300 * (min(self.level, 29) + 1)
-            elif cleared == 3:
-                self.score[4] += 500 * (min(self.level, 29) + 1)
-            elif cleared == 4:
-                self.score[5] += 800 * (min(self.level, 29) + 1)
+                    self.score_up += 400 * (min(self.level, 29) + 1)
+                    self.for_what_id = 6
+            else:
+                if cleared == 1:
+                    self.score[2] += 100 * (min(self.level, 29) + 1)
+                    self.score_up += 100 * (min(self.level, 29) + 1)
+                    self.for_what_id = 0
+                elif cleared == 2:
+                    self.score[3] += 300 * (min(self.level, 29) + 1)
+                    self.score_up += 300 * (min(self.level, 29) + 1)
+                    self.for_what_id = 1
+                elif cleared == 3:
+                    self.score[4] += 500 * (min(self.level, 29) + 1)
+                    self.score_up += 500 * (min(self.level, 29) + 1)
+                    self.for_what_id = 2
+                elif cleared == 4:
+                    self.score[5] += 800 * (min(self.level, 29) + 1)
+                    self.score_up += 800 * (min(self.level, 29) + 1)
+                    self.for_what_id = 3
+                    difficult = True
             if sum(self.cleared_lines) >= self.lines_for_level_up:
                 self.level += 1
                 self.lines_for_level_up += 10
+            if difficult:
+                self.back_to_back += 1
+                if self.back_to_back > 0:
+                    self.score[14] += int((self.score_up*3/2) - self.score_up)
+                    self.score_up += int((self.score_up*3/2) - self.score_up)
+            else:
+                self.back_to_back = -1
+            if self.combo > 0:
+                self.score[13] += 50 * self.combo * (min(self.level, 29) + 1)
+                self.score_up += 50 * self.combo * (min(self.level, 29) + 1)
+            self.for_what_delay = 3
         else:
+            self.combo = -1
             if t_spin:
                 self.score[9] += 400 * (min(self.level, 29) + 1)
+                self.score_up = 400 * (min(self.level, 29) + 1)
+                self.for_what_id = 7
+                self.for_what_delay = 3
             elif t_spin_mini:
                 self.score[6] += 100 * (min(self.level, 29) + 1)
+                self.score_up = 100 * (min(self.level, 29) + 1)
+                self.for_what_id = 4
+                self.for_what_delay = 3
         return 0
 
     def collision(self, next_posx, next_posy, next_id, next_spin_id):
@@ -642,6 +688,7 @@ class TetrisGameplay:
                     k1 += 1
                 k1 = self.current_posx
                 i1 += 1
+        self.pieces[self.current_id] += 1
 
     def ghost_piece_y(self):
         y = self.current_posy
@@ -781,16 +828,30 @@ class TetrisGameplay:
             win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%m:%S'), 1, (255, 255, 255)),
                      (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
         else:
-            win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%H:%M:%S'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+            win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%H:%M:%S'), 1, (255, 255, 255)), (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+        if self.score_up > 0:
+            win.blit(FONT.render(self.for_what_score[self.for_what_id], 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
+                     (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 5))
+            win.blit(
+                FONT.render(f"+{self.score_up}", 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
+                (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 30))
+            if self.combo > 0:
+                win.blit(
+                    FONT.render(f"COMBO × {self.combo}", 1, (
+                    230 * (min(self.for_what_delay, 1)) + 25, 230 * (min(self.for_what_delay, 1)) + 25,
+                    230 * (min(self.for_what_delay, 1)) + 25)),
+                    (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y + 2) + 55))
+            if self.back_to_back > 0:
+                win.blit(
+                    FONT.render(f"BACK-TO-BACK × {self.back_to_back}", 1, (
+                    230 * (min(self.for_what_delay, 1)) + 25, 230 * (min(self.for_what_delay, 1)) + 25,
+                    230 * (min(self.for_what_delay, 1)) + 25)),
+                    (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y + 2) + 80))
         if self.game_over:
             text_size_x = FONT.size("GAME")[0]
-            pygame.draw.rect(win, (0, 0, 0), (
-            BLOCK_SIZE * (FIELD_SIZE_X / 2) - text_size_x, BLOCK_SIZE * FIELD_SIZE_Y / 2, text_size_x * 2 + 10, 60))
-            win.blit(FONT.render("GAME", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2))
-            win.blit(FONT.render("OVER", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2 + 25))
+            pygame.draw.rect(win, (0, 0, 0), (BLOCK_SIZE * (FIELD_SIZE_X / 2) - text_size_x, BLOCK_SIZE * FIELD_SIZE_Y / 2, text_size_x * 2 + 10, 60))
+            win.blit(FONT.render("GAME", 1, (255, 255, 255)), (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2))
+            win.blit(FONT.render("OVER", 1, (255, 255, 255)), (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2 + 25))
         pygame.display.update()
 
     def draw_game_stats(self, on_pause):
@@ -928,17 +989,27 @@ class NesLikeTetris(TetrisGameplay):
                 height = y
                 frames_delay += 10 + (2 * int(height / 4))
 
-        if cleared >= 0:
+        if cleared > 0:
             self.cleared_lines[cleared - 1] += cleared
             frames_delay += 18
+            self.score_up = 0
+            self.for_what_delay = 3
             if cleared == 1:
                 self.score[2] += 40 * (min(self.level, 29) + 1)
+                self.score_up += 40 * (min(self.level, 29) + 1)
+                self.for_what_id = 0
             elif cleared == 2:
                 self.score[3] += 100 * (min(self.level, 29) + 1)
+                self.score_up += 100 * (min(self.level, 29) + 1)
+                self.for_what_id = 1
             elif cleared == 3:
                 self.score[4] += 300 * (min(self.level, 29) + 1)
+                self.score_up += 300 * (min(self.level, 29) + 1)
+                self.for_what_id = 2
             elif cleared == 4:
                 self.score[5] += 1200 * (min(self.level, 29) + 1)
+                self.score_up += 1200 * (min(self.level, 29) + 1)
+                self.for_what_id = 3
             if sum(self.cleared_lines) >= self.lines_for_level_up:
                 self.level += 1
                 self.lines_for_level_up += 10
@@ -1042,6 +1113,12 @@ class NesLikeTetris(TetrisGameplay):
         else:
             win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%H:%M:%S'), 1, (255, 255, 255)),
                      (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+        if self.score_up > 0:
+            win.blit(FONT.render(self.for_what_score[self.for_what_id], 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
+                     (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 5))
+            win.blit(
+                FONT.render(f"+{self.score_up}", 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
+                (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 30))
         if self.game_over:
             text_size_x = FONT.size("GAME")[0]
             pygame.draw.rect(win, (0, 0, 0), (
@@ -1185,10 +1262,14 @@ def main():
                     field.lock_delay_frames = 30
                     corrupt_hard_drop = True
                 field.game_time += clock.get_time()/1000
+            if field.for_what_delay > 0:
+                field.for_what_delay -= clock.get_time()/1000
             if field.game_over:
                 ticks_before_stats -= 1
             if not field.game_over:
                 g += field.gravity_and_lines_table()[0]
+                if g > 22:
+                    g = 22
                 while g >= 1:
                     if field.support_lock_delay:
                         if not field.move_down():
@@ -1214,7 +1295,7 @@ def main():
                 state = "main menu"
             elif pygame.K_r in pressed_keys:
                 state = "pregameplay"
-            if pygame.K_p in pressed_keys:
+            if pygame.K_p in pressed_keys and not field.game_over:
                 on_pause = False
                 state = "gameplay"
 
