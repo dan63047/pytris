@@ -4,8 +4,6 @@ import pygame, random, datetime
 from string import Template
 
 BLOCK_SIZE = 30
-FIELD_SIZE_X = 10
-FIELD_SIZE_Y = 20
 GUIDELINES = ["Current", "NES like"]
 
 
@@ -19,177 +17,6 @@ class Block:
 
     def __repr__(self):
         return f"Block {self.color_str}"
-
-
-TETROMINOS = [
-    [
-        [
-            [None, None, Block((240, 160, 0)), None],
-            [Block((240, 160, 0)), Block((240, 160, 0)), Block((240, 160, 0)), None],
-            [None, None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((240, 160, 0)), None, None],
-            [None, Block((240, 160, 0)), None, None],
-            [None, Block((240, 160, 0)), Block((240, 160, 0)), None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, None, None],
-            [Block((240, 160, 0)), Block((240, 160, 0)), Block((240, 160, 0)), None],
-            [Block((240, 160, 0)), None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [Block((240, 160, 0)), Block((240, 160, 0)), None, None],
-            [None, Block((240, 160, 0)), None, None],
-            [None, Block((240, 160, 0)), None, None],
-            [None, None, None, None]
-        ]
-
-    ],  # 0, L
-    [
-
-        [
-            [Block((0, 0, 240)), None, None, None],
-            [Block((0, 0, 240)), Block((0, 0, 240)), Block((0, 0, 240)), None],
-            [None, None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((0, 0, 240)), Block((0, 0, 240)), None],
-            [None, Block((0, 0, 240)), None, None],
-            [None, Block((0, 0, 240)), None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, None, None],
-            [Block((0, 0, 240)), Block((0, 0, 240)), Block((0, 0, 240)), None],
-            [None, None, Block((0, 0, 240)), None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((0, 0, 240)), None, None],
-            [None, Block((0, 0, 240)), None, None],
-            [Block((0, 0, 240)), Block((0, 0, 240)), None, None],
-            [None, None, None, None]
-        ]
-    ],  # 1, J
-    [
-        [
-            [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
-            [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
-            [None, None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((0, 240, 0)), None, None],
-            [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
-            [None, None, Block((0, 240, 0)), None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, None, None],
-            [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
-            [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
-            [None, None, None, None]
-        ],
-        [
-            [Block((0, 240, 0)), None, None, None],
-            [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
-            [None, Block((0, 240, 0)), None, None],
-            [None, None, None, None]
-        ]
-    ],  # 2, S
-    [
-        [
-            [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
-            [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
-            [None, None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, Block((240, 0, 0)), None],
-            [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
-            [None, Block((240, 0, 0)), None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, None, None],
-            [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
-            [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((240, 0, 0)), None, None],
-            [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
-            [Block((240, 0, 0)), None, None, None],
-            [None, None, None, None]
-        ]
-    ],  # 3, Z
-    [
-        [
-            [None, Block((160, 0, 240)), None, None],
-            [Block((160, 0, 240)), Block((160, 0, 240)), Block((160, 0, 240)), None],
-            [None, None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((160, 0, 240)), None, None],
-            [None, Block((160, 0, 240)), Block((160, 0, 240)), None],
-            [None, Block((160, 0, 240)), None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, None, None],
-            [Block((160, 0, 240)), Block((160, 0, 240)), Block((160, 0, 240)), None],
-            [None, Block((160, 0, 240)), None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((160, 0, 240)), None, None],
-            [Block((160, 0, 240)), Block((160, 0, 240)), None, None],
-            [None, Block((160, 0, 240)), None, None],
-            [None, None, None, None]
-        ]
-    ],  # 4, T
-    [
-        [
-            [None, None, None, None],
-            [Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240))],
-            [None, None, None, None],
-            [None, None, None, None]
-        ],
-        [
-            [None, None, Block((0, 240, 240)), None],
-            [None, None, Block((0, 240, 240)), None],
-            [None, None, Block((0, 240, 240)), None],
-            [None, None, Block((0, 240, 240)), None]
-        ],
-        [
-            [None, None, None, None],
-            [None, None, None, None],
-            [Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240))],
-            [None, None, None, None]
-        ],
-        [
-            [None, Block((0, 240, 240)), None, None],
-            [None, Block((0, 240, 240)), None, None],
-            [None, Block((0, 240, 240)), None, None],
-            [None, Block((0, 240, 240)), None, None]
-        ]
-
-    ],  # 5, I
-    [
-        [
-            [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
-            [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
-            [None, None, None, None],
-            [None, None, None, None]
-        ]
-    ]   # 6, O
-]
 
 
 class DeltaTemplate(Template):
@@ -213,17 +40,186 @@ def strfdelta(tdelta, fmt):
 
 
 class TetrisGameplay:
-    def __init__(self, size_x=FIELD_SIZE_X, size_y=FIELD_SIZE_Y, level=0, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=3):
+    def __init__(self, level=0, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=3):
         self.buffer_y = buffer_zone
-        self.FIELD = list(range(size_y + buffer_zone))
+        self.FIELD = list(range(20 + buffer_zone))
         y = 0
         while y != len(self.FIELD):
-            self.FIELD[y] = list(range(size_x))
+            self.FIELD[y] = list(range(10))
             x = 0
-            while x != size_x:
+            while x != 10:
                 self.FIELD[y][x] = None
                 x += 1
             y += 1
+        self.TETROMINOS = [
+            [
+                [
+                    [None, None, Block((240, 160, 0)), None],
+                    [Block((240, 160, 0)), Block((240, 160, 0)), Block((240, 160, 0)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), Block((240, 160, 0)), None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((240, 160, 0)), Block((240, 160, 0)), Block((240, 160, 0)), None],
+                    [Block((240, 160, 0)), None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [Block((240, 160, 0)), Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, None, None, None]
+                ]
+
+            ],  # 0, L
+            [
+
+                [
+                    [Block((0, 0, 240)), None, None, None],
+                    [Block((0, 0, 240)), Block((0, 0, 240)), Block((0, 0, 240)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 0, 240)), Block((0, 0, 240)), None],
+                    [None, Block((0, 0, 240)), None, None],
+                    [None, Block((0, 0, 240)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((0, 0, 240)), Block((0, 0, 240)), Block((0, 0, 240)), None],
+                    [None, None, Block((0, 0, 240)), None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 0, 240)), None, None],
+                    [None, Block((0, 0, 240)), None, None],
+                    [Block((0, 0, 240)), Block((0, 0, 240)), None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 1, J
+            [
+                [
+                    [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
+                    [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 240, 0)), None, None],
+                    [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
+                    [None, None, Block((0, 240, 0)), None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
+                    [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [Block((0, 240, 0)), None, None, None],
+                    [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
+                    [None, Block((0, 240, 0)), None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 2, S
+            [
+                [
+                    [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
+                    [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, Block((240, 0, 0)), None],
+                    [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
+                    [None, Block((240, 0, 0)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
+                    [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((240, 0, 0)), None, None],
+                    [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
+                    [Block((240, 0, 0)), None, None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 3, Z
+            [
+                [
+                    [None, Block((160, 0, 240)), None, None],
+                    [Block((160, 0, 240)), Block((160, 0, 240)), Block((160, 0, 240)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, Block((160, 0, 240)), Block((160, 0, 240)), None],
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((160, 0, 240)), Block((160, 0, 240)), Block((160, 0, 240)), None],
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((160, 0, 240)), None, None],
+                    [Block((160, 0, 240)), Block((160, 0, 240)), None, None],
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 4, T
+            [
+                [
+                    [None, None, None, None],
+                    [Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240))],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, Block((0, 240, 240)), None],
+                    [None, None, Block((0, 240, 240)), None],
+                    [None, None, Block((0, 240, 240)), None],
+                    [None, None, Block((0, 240, 240)), None]
+                ],
+                [
+                    [None, None, None, None],
+                    [None, None, None, None],
+                    [Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240))],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 240, 240)), None, None],
+                    [None, Block((0, 240, 240)), None, None],
+                    [None, Block((0, 240, 240)), None, None],
+                    [None, Block((0, 240, 240)), None, None]
+                ]
+
+            ],  # 5, I
+            [
+                [
+                    [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
+                    [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ]
+            ]   # 6, O
+        ]
         self.current_posx = 4
         self.current_posy = self.buffer_y - 2
         self.can_hard_drop = hard_drop
@@ -256,7 +252,7 @@ class TetrisGameplay:
         ]
         self.score_up = 0
         self.for_what_id = 0
-        self.for_what_score = ["SINGLE", "DOUBLE", "TRIPLE", "QUAD", "T-SPIN MINI 0L", "T-SPIN MINI 1L", "T-SPIN MINI 2L", "T-SPIN 0L", "T-SPIN 1L", "T-SPIN 2L", "T-SPIN 3L"]
+        self.for_what_score = ["SINGLE", "DOUBLE", "TRIPLE", "QUAD", "T-SPIN MINI", "T-SPIN MINI SINGLE", "T-SPIN MINI DOUBLE", "T-SPIN", "T-SPIN SINGLE", "T-SPIN DOUBLE", "T-SPIN TRIPLE"]
         self.for_what_delay = 0
         self.cleared_lines = [
             0,  # Single
@@ -368,12 +364,12 @@ class TetrisGameplay:
             for k in i:
                 if k is not None:
                     ic += 1
-            if ic == FIELD_SIZE_X:
+            if ic == 10:
                 cleared += 1
                 self.FIELD.remove(i)
-                new = list(range(FIELD_SIZE_X))
+                new = list(range(10))
                 x = 0
-                while x != FIELD_SIZE_X:
+                while x != 10:
                     new[x] = None
                     x += 1
                 self.FIELD.insert(0, new)
@@ -458,7 +454,7 @@ class TetrisGameplay:
     def collision(self, next_posx, next_posy, next_id, next_spin_id):
         i1 = next_posy
         k1 = next_posx
-        for i in TETROMINOS[next_id][next_spin_id]:
+        for i in self.TETROMINOS[next_id][next_spin_id]:
             for k in i:
                 if k and (i1 >= len(self.FIELD) or k1 >= len(self.FIELD[i1]) or i1 < 0 or k1 < 0 or self.FIELD[i1][k1]):
                     return True
@@ -681,7 +677,7 @@ class TetrisGameplay:
         i1 = self.current_posy
         k1 = self.current_posx
         if self.current_id is not None:
-            for i in TETROMINOS[self.current_id][self.current_spin_id]:
+            for i in self.TETROMINOS[self.current_id][self.current_spin_id]:
                 for k in i:
                     if k:
                         self.FIELD[i1][k1] = k
@@ -721,12 +717,12 @@ class TetrisGameplay:
     def draw_game(self):
         win.fill((25, 25, 25))
         pygame.draw.rect(win, (0, 0, 0),
-                         (5, (BLOCK_SIZE * 2 + 5), BLOCK_SIZE * FIELD_SIZE_X, BLOCK_SIZE * FIELD_SIZE_Y))
+                         (130, (BLOCK_SIZE * 2 + 5), BLOCK_SIZE * 10, BLOCK_SIZE * 20))
         x = 0
         y = -self.buffer_y
         for i in self.FIELD:
             for k in i:
-                window_x = 5 + BLOCK_SIZE * x
+                window_x = 130 + BLOCK_SIZE * x
                 window_y = (BLOCK_SIZE * 2 + 5) + BLOCK_SIZE * y
                 if k is not None:
                     pygame.draw.rect(win, k.color, (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
@@ -739,10 +735,10 @@ class TetrisGameplay:
         i1 = self.current_posy - self.buffer_y
         k1 = self.current_posx
         if self.current_id is not None:
-            for i in TETROMINOS[self.current_id][self.current_spin_id]:
+            for i in self.TETROMINOS[self.current_id][self.current_spin_id]:
                 for k in i:
                     if k is not None:
-                        window_x = 5 + BLOCK_SIZE * k1
+                        window_x = 130 + BLOCK_SIZE * k1
                         window_y = (BLOCK_SIZE * 2 + 5) + BLOCK_SIZE * i1
                         pygame.draw.rect(win, (int(k.color[0]*self.lock_delay_frames/30), int(k.color[1]*self.lock_delay_frames/30), int(k.color[2]*self.lock_delay_frames/30)), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
                         pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE), width=2)
@@ -752,10 +748,10 @@ class TetrisGameplay:
             if self.support_ghost_piece:
                 i1 = self.ghost_piece_y() - self.buffer_y
                 k1 = self.current_posx
-                for i in TETROMINOS[self.current_id][self.current_spin_id]:
+                for i in self.TETROMINOS[self.current_id][self.current_spin_id]:
                     for k in i:
                         if k is not None:
-                            window_x = 5 + BLOCK_SIZE * k1
+                            window_x = 130 + BLOCK_SIZE * k1
                             window_y = (BLOCK_SIZE * 2 + 5) + BLOCK_SIZE * i1
                             pygame.draw.rect(win, (k.color[0], k.color[1], k.color[2]), (window_x+5, window_y+5, BLOCK_SIZE-10, BLOCK_SIZE-10), width=10, border_radius=1)
                         k1 += 1
@@ -765,10 +761,10 @@ class TetrisGameplay:
         for q in range(0, self.next_length):
             i1 = 0
             k1 = 0
-            for i in TETROMINOS[self.next_queue[q]][0]:
+            for i in self.TETROMINOS[self.next_queue[q]][0]:
                 for k in i:
                     if k is not None:
-                        window_x = 5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + 10 * k1 + x_offset
+                        window_x = 470 + 10 * k1 + x_offset
                         window_y = (BLOCK_SIZE * 2 + 30) + 10 * i1
                         pygame.draw.rect(win, k.color, (window_x, window_y, 10, 10))
                         pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, 10, 10), width=1)
@@ -780,78 +776,53 @@ class TetrisGameplay:
             if self.hold_id is not None:
                 i1 = 0
                 k1 = 0
-                for i in TETROMINOS[self.hold_id][0]:
+                for i in self.TETROMINOS[self.hold_id][0]:
                     for k in i:
                         if k is not None:
-                            window_x = 5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + 10 * k1
-                            window_y = (BLOCK_SIZE * 2 + 75) + 10 * i1
+                            window_x = 90 + 10 * k1
+                            window_y = (BLOCK_SIZE * 2 + 30) + 10 * i1
                             pygame.draw.rect(win, k.color, (window_x, window_y, 10, 10))
                             pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, 10, 10), width=1)
                         k1 += 1
                     k1 = 0
                     i1 += 1
-        win.blit(FONT.render("SCORE", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 25 + BLOCK_SIZE * 7))
-        total_score = sum(self.score)
-        win.blit(FONT.render(f"{total_score:06d}", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 50 + BLOCK_SIZE * 7))
-        win.blit(FONT.render("LINES", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 90 + BLOCK_SIZE * 7))
-        total_lines = sum(self.cleared_lines)
-        win.blit(FONT.render(f"{total_lines:03d}", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 115 + BLOCK_SIZE * 7))
-        win.blit(FONT.render("LV", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 155 + BLOCK_SIZE * 7))
-        win.blit(FONT.render(f"{self.level:02d}", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
+        win.blit(MEDIUM_FONT.render("SCORE", 1, (255, 255, 255)), (440, 562))
+        win.blit(MEDIUM_FONT.render(f"{sum(self.score):5d}", 1, (255, 255, 255)), (440, 582))
+        win.blit(MEDIUM_FONT.render("LINES", 1, (255, 255, 255)), (440, 622))
+        win.blit(MEDIUM_FONT.render(f"{sum(self.cleared_lines):5d}", 1, (255, 255, 255)), (440, 642))
+        win.blit(MEDIUM_FONT.render("LV", 1, (255, 255, 255)), (80, 502))
+        win.blit(MEDIUM_FONT.render(f"{self.level:02d}", 1, (255, 255, 255)), (80, 522))
+        win.blit(MEDIUM_FONT.render("PPS", 1, (255, 255, 255)), (60, 562))
         try:
             pps = sum(self.pieces) / self.game_time
         except ZeroDivisionError:
             pps = 0
-        win.blit(FONT.render("PPS", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 120 + BLOCK_SIZE * k1, 155 + BLOCK_SIZE * 7))
-        if pps >= 1:
-            win.blit(FONT.render(f"{pps:1.1f}", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 120 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
-        else:
-            win.blit(FONT.render(f".{int(pps*100):02d}", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 120 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
-        win.blit(FONT.render("TIME", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 220 + BLOCK_SIZE * 7))
-        if self.game_time < 10:
-            win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%s.%Z'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
-        elif self.game_time < 60:
-            win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%S.%z'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
-        elif self.game_time < 3600:
-            win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%m:%S'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
-        else:
-            win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%H:%M:%S'), 1, (255, 255, 255)), (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
-        if self.score_up > 0:
+        win.blit(MEDIUM_FONT.render(f"{pps:6.2f}", 1, (255, 255, 255)), (0, 582))
+        win.blit(MEDIUM_FONT.render("TIME", 1, (255, 255, 255)), (40, 622))
+        win.blit(MEDIUM_FONT.render(f"{strfdelta(datetime.timedelta(seconds=self.game_time), '%m:%S'):>6s}", 1, (255, 255, 255)), (0, 642))
+        if self.for_what_delay > 0.1:
             win.blit(FONT.render(self.for_what_score[self.for_what_id], 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
-                     (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 5))
+                     (120, 670))
             win.blit(
                 FONT.render(f"+{self.score_up}", 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
-                (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 30))
+                (120, 695))
             if self.combo > 0:
                 win.blit(
                     FONT.render(f"COMBO × {self.combo}", 1, (
                     230 * (min(self.for_what_delay, 1)) + 25, 230 * (min(self.for_what_delay, 1)) + 25,
                     230 * (min(self.for_what_delay, 1)) + 25)),
-                    (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y + 2) + 55))
+                    (120, 720))
             if self.back_to_back > 0:
                 win.blit(
                     FONT.render(f"BACK-TO-BACK × {self.back_to_back}", 1, (
                     230 * (min(self.for_what_delay, 1)) + 25, 230 * (min(self.for_what_delay, 1)) + 25,
                     230 * (min(self.for_what_delay, 1)) + 25)),
-                    (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y + 2) + 80))
+                    (120, 745))
         if self.game_over:
             text_size_x = FONT.size("GAME")[0]
-            pygame.draw.rect(win, (0, 0, 0), (BLOCK_SIZE * (FIELD_SIZE_X / 2) - text_size_x, BLOCK_SIZE * FIELD_SIZE_Y / 2, text_size_x * 2 + 10, 60))
-            win.blit(FONT.render("GAME", 1, (255, 255, 255)), (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2))
-            win.blit(FONT.render("OVER", 1, (255, 255, 255)), (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2 + 25))
+            pygame.draw.rect(win, (0, 0, 0), (BLOCK_SIZE * (10 / 2) - text_size_x, BLOCK_SIZE * 20 / 2, text_size_x * 2 + 10, 60))
+            win.blit(FONT.render("GAME", 1, (255, 255, 255)), (5 + BLOCK_SIZE * 10 / 2 - text_size_x / 2, 5 + BLOCK_SIZE * 20 / 2))
+            win.blit(FONT.render("OVER", 1, (255, 255, 255)), (5 + BLOCK_SIZE * 10 / 2 - text_size_x / 2, 5 + BLOCK_SIZE * 20 / 2 + 25))
         pygame.display.update()
 
     def draw_game_stats(self, on_pause):
@@ -886,7 +857,7 @@ class TetrisGameplay:
         win.blit(SMALL_FONT.render(f"TRIPLE {triple_times:5d} {self.cleared_lines[2]:5d}      T {self.pieces[4]:<4d} O {self.pieces[6]:<4d}", 1, (255, 255, 255)),
                  (25, 340))
         tetris_times = int(self.cleared_lines[3] / 4)
-        win.blit(SMALL_FONT.render(f"TETRIS {tetris_times:5d} {self.cleared_lines[3]:5d}      I {self.pieces[5]:<10d}", 1, (255, 255, 255)),
+        win.blit(SMALL_FONT.render(f"QUAD {tetris_times:7d} {self.cleared_lines[3]:5d}      I {self.pieces[5]:<10d}", 1, (255, 255, 255)),
                  (25, 355))
         win.blit(SMALL_FONT.render(f"SCORE TABLE", 1, (255, 255, 255)), (25, 380))
         win.blit(SMALL_FONT.render(f"SOFT DROPS {self.score[0]:14d}", 1, (255, 255, 255)), (25, 400))
@@ -894,7 +865,7 @@ class TetrisGameplay:
         win.blit(SMALL_FONT.render(f"SINGLE {self.score[2]:18d}", 1, (255, 255, 255)), (25, 430))
         win.blit(SMALL_FONT.render(f"DOUBLE {self.score[3]:18d}", 1, (255, 255, 255)), (25, 445))
         win.blit(SMALL_FONT.render(f"TRIPLE {self.score[4]:18d}", 1, (255, 255, 255)), (25, 460))
-        win.blit(SMALL_FONT.render(f"TETRIS {self.score[5]:18d}", 1, (255, 255, 255)), (25, 475))
+        win.blit(SMALL_FONT.render(f"QUAD {self.score[5]:20d}", 1, (255, 255, 255)), (25, 475))
         win.blit(SMALL_FONT.render(f"T-SPIN MINI NO L. {self.score[6]:7d}", 1, (255, 255, 255)), (25, 490))
         win.blit(SMALL_FONT.render(f"T-SPIN MINI SINGLE {self.score[7]:6d}", 1, (255, 255, 255)), (25, 505))
         win.blit(SMALL_FONT.render(f"T-SPIN MINI DOUBLE {self.score[8]:6d}", 1, (255, 255, 255)), (25, 520))
@@ -908,7 +879,7 @@ class TetrisGameplay:
 
 
 class NesLikeTetris(TetrisGameplay):
-    def __init__(self, size_x=FIELD_SIZE_X, size_y=FIELD_SIZE_Y, level=0):
+    def __init__(self, size_x=10, size_y=20, level=0):
         super().__init__(size_x, size_y, level, 2, False, False, False, False, False, False, (267, 100), True, 1)
 
     def __str__(self):
@@ -975,12 +946,12 @@ class NesLikeTetris(TetrisGameplay):
             for k in i:
                 if k is not None:
                     ic += 1
-            if ic == FIELD_SIZE_X:
+            if ic == 10:
                 cleared += 1
                 self.FIELD.remove(i)
-                new = list(range(FIELD_SIZE_X))
+                new = list(range(10))
                 x = 0
-                while x != FIELD_SIZE_X:
+                while x != 10:
                     new[x] = None
                     x += 1
                 self.FIELD.insert(0, new)
@@ -1018,7 +989,7 @@ class NesLikeTetris(TetrisGameplay):
     def draw_game(self):
         win.fill((25, 25, 25))
         pygame.draw.rect(win, (0, 0, 0),
-                         (5, (BLOCK_SIZE * 2 + 5), BLOCK_SIZE * FIELD_SIZE_X, BLOCK_SIZE * FIELD_SIZE_Y))
+                         (5, (BLOCK_SIZE * 2 + 5), BLOCK_SIZE * 10, BLOCK_SIZE * 20))
         x = 0
         y = -self.buffer_y
         for i in self.FIELD:
@@ -1034,7 +1005,7 @@ class NesLikeTetris(TetrisGameplay):
         i1 = self.current_posy - self.buffer_y
         k1 = self.current_posx
         if self.current_id is not None:
-            for i in TETROMINOS[self.current_id][self.current_spin_id]:
+            for i in self.TETROMINOS[self.current_id][self.current_spin_id]:
                 for k in i:
                     if k is not None:
                         window_x = 5 + BLOCK_SIZE * k1
@@ -1048,10 +1019,10 @@ class NesLikeTetris(TetrisGameplay):
         for q in range(0, self.next_length):
             i1 = 0
             k1 = 0
-            for i in TETROMINOS[self.next_queue[q]][0]:
+            for i in self.TETROMINOS[self.next_queue[q]][0]:
                 for k in i:
                     if k is not None:
-                        window_x = 5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1 + x_offset
+                        window_x = 5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1 + x_offset
                         window_y = (BLOCK_SIZE * 2 + 30) + BLOCK_SIZE * i1
                         pygame.draw.rect(win, k.color, (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
                         pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE), width=1)
@@ -1063,70 +1034,70 @@ class NesLikeTetris(TetrisGameplay):
             if self.hold_id is not None:
                 i1 = 0
                 k1 = 0
-                for i in TETROMINOS[self.hold_id][0]:
+                for i in self.TETROMINOS[self.hold_id][0]:
                     for k in i:
                         if k is not None:
-                            window_x = 5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + 10 * k1
+                            window_x = 5 + BLOCK_SIZE * 10 + 20 + 10 * k1
                             window_y = (BLOCK_SIZE * 2 + 75) + 10 * i1
                             pygame.draw.rect(win, k.color, (window_x, window_y, 10, 10))
                             pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, 10, 10), width=1)
                         k1 += 1
                     k1 = 0
                     i1 += 1
-        win.blit(FONT.render("SCORE", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 25 + BLOCK_SIZE * 7))
+        win.blit(MEDIUM_FONT.render("SCORE", 1, (255, 255, 255)),
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 25 + BLOCK_SIZE * 7))
         total_score = sum(self.score)
         win.blit(FONT.render(f"{total_score:06d}", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 50 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 50 + BLOCK_SIZE * 7))
         win.blit(FONT.render("LINES", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 90 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 90 + BLOCK_SIZE * 7))
         total_lines = sum(self.cleared_lines)
         win.blit(FONT.render(f"{total_lines:03d}", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 115 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 115 + BLOCK_SIZE * 7))
         win.blit(FONT.render("LV", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 155 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 155 + BLOCK_SIZE * 7))
         win.blit(FONT.render(f"{self.level:02d}", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
         try:
             tetris_rate = int((self.cleared_lines[3] / total_lines) * 100)
         except ZeroDivisionError:
             tetris_rate = 0
         win.blit(FONT.render("TRT", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 120 + BLOCK_SIZE * k1, 155 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 120 + BLOCK_SIZE * k1, 155 + BLOCK_SIZE * 7))
         if tetris_rate == 100:
             win.blit(FONT.render(f"{tetris_rate}", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 120 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
+                     (5 + BLOCK_SIZE * 10 + 120 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
         else:
             win.blit(FONT.render(f"{tetris_rate:02d}%", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 120 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
+                     (5 + BLOCK_SIZE * 10 + 120 + BLOCK_SIZE * k1, 180 + BLOCK_SIZE * 7))
         win.blit(FONT.render("TIME", 1, (255, 255, 255)),
-                 (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 220 + BLOCK_SIZE * 7))
+                 (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 220 + BLOCK_SIZE * 7))
         if self.game_time < 10:
             win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%s.%Z'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+                     (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
         elif self.game_time < 60:
             win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%S.%z'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+                     (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
         elif self.game_time < 3600:
             win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%m:%S'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+                     (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
         else:
             win.blit(FONT.render(strfdelta(datetime.timedelta(seconds=self.game_time), '%H:%M:%S'), 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
+                     (5 + BLOCK_SIZE * 10 + 20 + BLOCK_SIZE * k1, 245 + BLOCK_SIZE * 7))
         if self.score_up > 0:
             win.blit(FONT.render(self.for_what_score[self.for_what_id], 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
-                     (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 5))
+                     (5, 5 + BLOCK_SIZE * (20+2) + 5))
             win.blit(
                 FONT.render(f"+{self.score_up}", 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
-                (5, 5 + BLOCK_SIZE * (FIELD_SIZE_Y+2) + 30))
+                (5, 5 + BLOCK_SIZE * (20+2) + 30))
         if self.game_over:
             text_size_x = FONT.size("GAME")[0]
             pygame.draw.rect(win, (0, 0, 0), (
-            BLOCK_SIZE * (FIELD_SIZE_X / 2) - text_size_x, BLOCK_SIZE * FIELD_SIZE_Y / 2, text_size_x * 2 + 10, 60))
+            BLOCK_SIZE * (10 / 2) - text_size_x, BLOCK_SIZE * 20 / 2, text_size_x * 2 + 10, 60))
             win.blit(FONT.render("GAME", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2))
+                     (5 + BLOCK_SIZE * 10 / 2 - text_size_x / 2, 5 + BLOCK_SIZE * 20 / 2))
             win.blit(FONT.render("OVER", 1, (255, 255, 255)),
-                     (5 + BLOCK_SIZE * FIELD_SIZE_X / 2 - text_size_x / 2, 5 + BLOCK_SIZE * FIELD_SIZE_Y / 2 + 25))
+                     (5 + BLOCK_SIZE * 10 / 2 - text_size_x / 2, 5 + BLOCK_SIZE * 20 / 2 + 25))
         pygame.display.update()
 
     def draw_game_stats(self, on_pause):
@@ -1161,14 +1132,14 @@ class NesLikeTetris(TetrisGameplay):
         win.blit(SMALL_FONT.render(f"TRIPLE {triple_times:5d} {self.cleared_lines[2]:5d}      T {self.pieces[4]:<4d} O {self.pieces[6]:<4d}", 1, (255, 255, 255)),
                  (25, 340))
         tetris_times = int(self.cleared_lines[3] / 4)
-        win.blit(SMALL_FONT.render(f"TETRIS {tetris_times:5d} {self.cleared_lines[3]:5d}      I {self.pieces[5]:<10d}", 1, (255, 255, 255)),
+        win.blit(SMALL_FONT.render(f"QUAD {tetris_times:7d} {self.cleared_lines[3]:5d}      I {self.pieces[5]:<10d}", 1, (255, 255, 255)),
                  (25, 355))
         win.blit(SMALL_FONT.render(f"SCORE TABLE", 1, (255, 255, 255)), (25, 380))
         win.blit(SMALL_FONT.render(f"DROPS {self.score[0]:7d}", 1, (255, 255, 255)), (25, 400))
         win.blit(SMALL_FONT.render(f"SINGLE {self.score[2]:6d}", 1, (255, 255, 255)), (25, 415))
         win.blit(SMALL_FONT.render(f"DOUBLE {self.score[3]:6d}", 1, (255, 255, 255)), (25, 430))
         win.blit(SMALL_FONT.render(f"TRIPLE {self.score[4]:6d}", 1, (255, 255, 255)), (25, 445))
-        win.blit(SMALL_FONT.render(f"TETRIS {self.score[5]:6d}", 1, (255, 255, 255)), (25, 460))
+        win.blit(SMALL_FONT.render(f"QUAD {self.score[5]:8d}", 1, (255, 255, 255)), (25, 460))
         pygame.display.update()
 
 
@@ -1307,6 +1278,7 @@ if __name__ == "__main__":
     pygame.display.set_caption("dan63047 Tetris")
     pygame.font.init()
     FONT = pygame.font.Font("PressStart2P-vaV7.ttf", 25)
+    MEDIUM_FONT = pygame.font.Font("PressStart2P-vaV7.ttf", 20)
     SMALL_FONT = pygame.font.Font("PressStart2P-vaV7.ttf", 15)
     main()
     pygame.quit()
