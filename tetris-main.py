@@ -40,7 +40,7 @@ def strfdelta(tdelta, fmt):
 
 
 class TetrisGameplay:
-    def __init__(self, level=0, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
+    def __init__(self, level=1, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
         self.buffer_y = buffer_zone
         self.FIELD = list(range(20 + buffer_zone))
         y = 0
@@ -333,7 +333,7 @@ class TetrisGameplay:
         return f"size_x={len(self.FIELD[0])}, size_y={len(self.FIELD)}, buffer_y: {self.buffer_y}"
 
     def gravity_and_lines_table(self):
-        return 1 / (0.8 - ((self.level - 1) * 0.007)) ** (self.level - 1) * 0.016666, self.level * 10 + 10
+        return 1 / (0.8 - ((self.level - 1) * 0.007)) ** (self.level - 1) * 0.016666, self.level * 10
 
     def clear_lines(self):
         cleared = 0
@@ -386,46 +386,46 @@ class TetrisGameplay:
             if t_spin:
                 difficult = True
                 if cleared == 1:
-                    self.score[10] += 800 * (min(self.level, 29) + 1)
-                    self.score_up += 800 * (min(self.level, 29) + 1)
+                    self.score[10] += 800 * min(self.level, 15)
+                    self.score_up += 800 * min(self.level, 15)
                     self.for_what_id = 8
                 elif cleared == 2:
-                    self.score[11] += 1200 * (min(self.level, 29) + 1)
-                    self.score_up += 1200 * (min(self.level, 29) + 1)
+                    self.score[11] += 1200 * min(self.level, 15)
+                    self.score_up += 1200 * min(self.level, 15)
                     self.for_what_id = 9
                 elif cleared == 3:
-                    self.score[12] += 1600 * (min(self.level, 29) + 1)
-                    self.score_up += 1600 * (min(self.level, 29) + 1)
+                    self.score[12] += 1600 * min(self.level, 15)
+                    self.score_up += 1600 * min(self.level, 15)
                     self.for_what_id = 10
             elif t_spin_mini:
                 difficult = True
                 if cleared == 1:
-                    self.score[7] += 200 * (min(self.level, 29) + 1)
-                    self.score_up += 200 * (min(self.level, 29) + 1)
+                    self.score[7] += 200 * min(self.level, 15)
+                    self.score_up += 200 * min(self.level, 15)
                     self.for_what_id = 5
                 elif cleared == 2:
-                    self.score[8] += 400 * (min(self.level, 29) + 1)
-                    self.score_up += 400 * (min(self.level, 29) + 1)
+                    self.score[8] += 400 * min(self.level, 15)
+                    self.score_up += 400 * min(self.level, 15)
                     self.for_what_id = 6
             else:
                 if cleared == 1:
-                    self.score[2] += 100 * (min(self.level, 29) + 1)
-                    self.score_up += 100 * (min(self.level, 29) + 1)
+                    self.score[2] += 100 * min(self.level, 15)
+                    self.score_up += 100 * min(self.level, 15)
                     self.for_what_id = 0
                 elif cleared == 2:
-                    self.score[3] += 300 * (min(self.level, 29) + 1)
-                    self.score_up += 300 * (min(self.level, 29) + 1)
+                    self.score[3] += 300 * min(self.level, 15)
+                    self.score_up += 300 * min(self.level, 15)
                     self.for_what_id = 1
                 elif cleared == 3:
-                    self.score[4] += 500 * (min(self.level, 29) + 1)
-                    self.score_up += 500 * (min(self.level, 29) + 1)
+                    self.score[4] += 500 * min(self.level, 15)
+                    self.score_up += 500 * min(self.level, 15)
                     self.for_what_id = 2
                 elif cleared == 4:
-                    self.score[5] += 800 * (min(self.level, 29) + 1)
-                    self.score_up += 800 * (min(self.level, 29) + 1)
+                    self.score[5] += 800 * min(self.level, 15)
+                    self.score_up += 800 * min(self.level, 15)
                     self.for_what_id = 3
                     difficult = True
-            if sum(self.cleared_lines) >= self.lines_for_level_up:
+            if sum(self.cleared_lines) >= self.lines_for_level_up and self.level != 15:
                 self.level += 1
                 self.lines_for_level_up += 10
             if difficult:
@@ -436,19 +436,19 @@ class TetrisGameplay:
             else:
                 self.back_to_back = -1
             if self.combo > 0:
-                self.score[13] += 50 * self.combo * (min(self.level, 29) + 1)
-                self.score_up += 50 * self.combo * (min(self.level, 29) + 1)
+                self.score[13] += 50 * self.combo * min(self.level, 15)
+                self.score_up += 50 * self.combo * min(self.level, 15)
             self.for_what_delay = 3
         else:
             self.combo = -1
             if t_spin:
-                self.score[9] += 400 * (min(self.level, 29) + 1)
-                self.score_up = 400 * (min(self.level, 29) + 1)
+                self.score[9] += 400 * min(self.level, 15)
+                self.score_up = 400 * min(self.level, 15)
                 self.for_what_id = 7
                 self.for_what_delay = 3
             elif t_spin_mini:
-                self.score[6] += 100 * (min(self.level, 29) + 1)
-                self.score_up = 100 * (min(self.level, 29) + 1)
+                self.score[6] += 100 * min(self.level, 15)
+                self.score_up = 100 * min(self.level, 15)
                 self.for_what_id = 4
                 self.for_what_delay = 3
         return 0
@@ -472,7 +472,7 @@ class TetrisGameplay:
                 future_spin_id = self.current_spin_id - 1
             else:
                 future_spin_id = self.current_spin_id + 1
-            future_spin_id %= 4
+            future_spin_id %= len(self.TETROMINOS[self.current_id])
             if not self.collision(self.current_posx, self.current_posy, self.current_id, future_spin_id):
                 self.current_spin_id = future_spin_id
                 self.spin_is_last_move = True
@@ -886,6 +886,138 @@ class TetrisGameplay:
 class NesLikeTetris(TetrisGameplay):
     def __init__(self, level=0):
         super().__init__(level, 2, False, False, False, False, False, False, (267, 100), True, 1)
+        self.TETROMINOS = [
+            [
+                [
+                    [None, None, Block((240, 160, 0)), None],
+                    [Block((240, 160, 0)), Block((240, 160, 0)), Block((240, 160, 0)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), Block((240, 160, 0)), None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((240, 160, 0)), Block((240, 160, 0)), Block((240, 160, 0)), None],
+                    [Block((240, 160, 0)), None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [Block((240, 160, 0)), Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, Block((240, 160, 0)), None, None],
+                    [None, None, None, None]
+                ]
+
+            ],  # 0, L
+            [
+
+                [
+                    [Block((0, 0, 240)), None, None, None],
+                    [Block((0, 0, 240)), Block((0, 0, 240)), Block((0, 0, 240)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 0, 240)), Block((0, 0, 240)), None],
+                    [None, Block((0, 0, 240)), None, None],
+                    [None, Block((0, 0, 240)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((0, 0, 240)), Block((0, 0, 240)), Block((0, 0, 240)), None],
+                    [None, None, Block((0, 0, 240)), None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 0, 240)), None, None],
+                    [None, Block((0, 0, 240)), None, None],
+                    [Block((0, 0, 240)), Block((0, 0, 240)), None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 1, J
+            [
+                [
+                    [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
+                    [Block((0, 240, 0)), Block((0, 240, 0)), None, None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((0, 240, 0)), None, None],
+                    [None, Block((0, 240, 0)), Block((0, 240, 0)), None],
+                    [None, None, Block((0, 240, 0)), None],
+                    [None, None, None, None]
+                ]
+            ],  # 2, S
+            [
+                [
+                    [Block((240, 0, 0)), Block((240, 0, 0)), None, None],
+                    [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, Block((240, 0, 0)), None],
+                    [None, Block((240, 0, 0)), Block((240, 0, 0)), None],
+                    [None, Block((240, 0, 0)), None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 3, Z
+            [
+                [
+                    [None, Block((160, 0, 240)), None, None],
+                    [Block((160, 0, 240)), Block((160, 0, 240)), Block((160, 0, 240)), None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, Block((160, 0, 240)), Block((160, 0, 240)), None],
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, None, None],
+                    [Block((160, 0, 240)), Block((160, 0, 240)), Block((160, 0, 240)), None],
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, Block((160, 0, 240)), None, None],
+                    [Block((160, 0, 240)), Block((160, 0, 240)), None, None],
+                    [None, Block((160, 0, 240)), None, None],
+                    [None, None, None, None]
+                ]
+            ],  # 4, T
+            [
+                [
+                    [None, None, None, None],
+                    [None, None, None, None],
+                    [Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240)), Block((0, 240, 240))],
+                    [None, None, None, None]
+                ],
+                [
+                    [None, None, Block((0, 240, 240)), None],
+                    [None, None, Block((0, 240, 240)), None],
+                    [None, None, Block((0, 240, 240)), None],
+                    [None, None, Block((0, 240, 240)), None]
+                ]
+            ],  # 5, I
+            [
+                [
+                    [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
+                    [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
+                    [None, None, None, None],
+                    [None, None, None, None]
+                ]
+            ]  # 6, O
+        ]
 
     def __str__(self):
         ans = f"size_x={len(self.FIELD[0])}, size_y={len(self.FIELD)}, Field:"
@@ -1139,7 +1271,7 @@ def draw_main_menu(selected, sel_lvl, sel_gl):
 
 def main():
     GAME_RUN = True
-    selected_level = 0
+    selected_level = [1, 0]
     selected_gl = 0
     ticks_before_stats = 180
     g = 0
@@ -1174,7 +1306,7 @@ def main():
                     pressed_keys.remove(i)
         keys = pygame.key.get_pressed()
         if state == "main menu":
-            draw_main_menu(menu_select, selected_level, selected_gl)
+            draw_main_menu(menu_select, selected_level[selected_gl], selected_gl)
             if pygame.K_RETURN in pressed_keys:
                 if menu_select == 0:
                     state = "pregameplay"
@@ -1182,10 +1314,10 @@ def main():
                 menu_select += 1
             if pygame.K_UP in pressed_keys and menu_select != 0:
                 menu_select -= 1
-            if pygame.K_RIGHT in pressed_keys and selected_level != 29 and menu_select == 1:
-                selected_level += 1
-            elif pygame.K_LEFT in pressed_keys and selected_level != 0 and menu_select == 1:
-                selected_level -= 1
+            if pygame.K_RIGHT in pressed_keys and menu_select == 1 and ((selected_gl == 0 and selected_level[selected_gl] != 15) or (selected_gl == 1 and selected_level[selected_gl] != 29)):
+                selected_level[selected_gl] += 1
+            elif pygame.K_LEFT in pressed_keys and menu_select == 1 and ((selected_gl == 0 and selected_level[selected_gl] != 1) or (selected_gl == 1 and selected_level[selected_gl] != 0)):
+                selected_level[selected_gl] -= 1
             if pygame.K_RIGHT in pressed_keys and selected_gl != 1 and menu_select == 2:
                 selected_gl += 1
             elif pygame.K_LEFT in pressed_keys and selected_gl != 0 and menu_select == 2:
@@ -1194,9 +1326,9 @@ def main():
             ticks_before_stats = 300
             delay_before_spawn = -1
             if selected_gl == 0:
-                field = TetrisGameplay(selected_level)
+                field = TetrisGameplay(selected_level[selected_gl])
             elif selected_gl == 1:
-                field = NesLikeTetris(selected_level)
+                field = NesLikeTetris(selected_level[selected_gl])
             pygame.key.set_repeat(field.handling[0], field.handling[1])
             state = "gameplay"
         elif state == "gameplay":
@@ -1207,9 +1339,11 @@ def main():
                 if pygame.K_p in pressed_keys:
                     on_pause = True
                     state = "gameplay_stats"
-                if pygame.K_UP in pressed_keys or pygame.K_x in pressed_keys:
+                if pygame.K_UP in pressed_keys:
                     field.spin()
                     corrupted_keys.append(pygame.K_UP)
+                if pygame.K_x in pressed_keys:
+                    field.spin()
                     corrupted_keys.append(pygame.K_x)
                 if pygame.K_z in pressed_keys:
                     field.spin(True)
@@ -1272,6 +1406,7 @@ def main():
         elif state == "gameplay_stats":
             field.draw_game_stats(on_pause)
             if pygame.K_BACKSPACE in pressed_keys:
+                pygame.key.set_repeat(267, 100)
                 state = "main menu"
             elif pygame.K_r in pressed_keys:
                 state = "pregameplay"
