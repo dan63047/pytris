@@ -830,12 +830,12 @@ class TetrisGameplay:
             win.blit(FONT.render("OVER", 1, (255, 255, 255)), (230, 360))
         pygame.display.update()
 
-    def draw_game_stats(self, on_pause):
+    def draw_game_stats(self):
         win.fill((25, 25, 25))
-        if on_pause:
-            win.blit(FONT.render("GAME PAUSED", 1, (255, 255, 255)), (25, 25))
-        else:
+        if self.game_over:
             win.blit(FONT.render("STATISTIC", 1, (255, 255, 255)), (25, 25))
+        else:
+            win.blit(FONT.render("GAME PAUSED", 1, (255, 255, 255)), (25, 25))
         total_score = sum(self.score)
         win.blit(FONT.render(f"SCORE {total_score:16d}", 1, (255, 255, 255)), (25, 100))
         total_pieces = sum(self.pieces)
@@ -1216,12 +1216,12 @@ class NesLikeTetris(TetrisGameplay):
             win.blit(FONT.render("OVER", 1, (255, 255, 255)), (230, 360))
         pygame.display.update()
 
-    def draw_game_stats(self, on_pause):
+    def draw_game_stats(self):
         win.fill((25, 25, 25))
-        if on_pause:
-            win.blit(FONT.render("GAME PAUSED", 1, (255, 255, 255)), (25, 25))
-        else:
+        if self.game_over:
             win.blit(FONT.render("STATISTIC", 1, (255, 255, 255)), (25, 25))
+        else:
+            win.blit(FONT.render("GAME PAUSED", 1, (255, 255, 255)), (25, 25))
         total_score = sum(self.score)
         win.blit(FONT.render(f"SCORE {total_score:16d}", 1, (255, 255, 255)), (25, 100))
         total_pieces = sum(self.pieces)
@@ -1261,7 +1261,7 @@ class NesLikeTetris(TetrisGameplay):
 
 def draw_main_menu(selected, sel_lvl, sel_gl):
     win.fill((25, 25, 25))
-    win.blit(FONT.render("TETRIS by dan63047", 1, (255, 255, 255)), (25, 25))
+    win.blit(FONT.render("PYTRIS by dan63047", 1, (255, 255, 255)), (25, 25))
     win.blit(FONT.render("›", 1, (255, 255, 255)), (25, 100 + 30 * selected))
     win.blit(FONT.render("Start", 1, (255, 255, 255)), (50, 100))
     win.blit(FONT.render(f"Level: {sel_lvl:02d}", 1, (255, 255, 255)), (50, 130))  # ↑↓
@@ -1404,7 +1404,7 @@ def main():
             if ticks_before_stats <= 0:
                 state = "gameplay_stats"
         elif state == "gameplay_stats":
-            field.draw_game_stats(on_pause)
+            field.draw_game_stats()
             if pygame.K_BACKSPACE in pressed_keys:
                 pygame.key.set_repeat(267, 100)
                 state = "main menu"
