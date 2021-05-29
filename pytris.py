@@ -5,6 +5,9 @@ from string import Template
 
 BLOCK_SIZE = 30
 GUIDELINES = ["Current", "NES like"]
+MODES = ["Endless", "Time limited", "Lines limited"]
+TIME_LIMITS_SEC = [120, 180, 300, 600, 1800, 3600, 86400]
+LINES_LIMITS = [40, 80, 120, 150, 300, 500, 1000]
 
 
 class Block:
@@ -35,12 +38,12 @@ def strfdelta(tdelta, fmt):
     d["z"] = '{:1d}'.format(int(tdelta.microseconds / 100000))
     d["H"] = hours
     d["M"] = '{:02d}'.format(minutes)
-    d["m"] = minutes
+    d["m"] = minutes + hours*60
     return t.substitute(**d)
 
 
 class TetrisGameplay:
-    def __init__(self, level=1, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
+    def __init__(self, mode=0, target=1, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
         self.buffer_y = buffer_zone
         self.FIELD = list(range(20 + buffer_zone))
         y = 0
@@ -223,6 +226,7 @@ class TetrisGameplay:
         self.current_posx = 4
         self.current_posy = self.buffer_y - 2
         self.can_hard_drop = hard_drop
+        self.mode = mode
         self.support_combo_and_btb_bonuses = False
         self.support_srs = srs
         self.handling = handling
@@ -290,9 +294,17 @@ class TetrisGameplay:
         self.current_spin_id = 0
         self.lock_delay_run = False
         self.lock_delay_frames = 30
-        self.level = level
+        if self.mode == 0:
+            self.level = target
+            self.start_level = target
+        else:
+            self.level = 1
+            self.start_level = 1
+        if self.mode == 1:
+            self.target = TIME_LIMITS_SEC[target]
+        elif self.mode == 2:
+            self.target = LINES_LIMITS[target]
         self.lines_for_level_up = self.gravity_and_lines_table()[1]
-        self.start_level = level
         self.game_over = False
 
     def spawn_tetromino(self):
@@ -381,6 +393,11 @@ class TetrisGameplay:
 
         if cleared > 0:
             self.cleared_lines[cleared - 1] += cleared
+            if self.mode == 2:
+                self.target -= cleared
+                if self.target <= 0:
+                    self.target = 0
+                    self.game_over = True
             self.combo += 1
             self.score_up = 0
             if t_spin:
@@ -785,7 +802,10 @@ class TetrisGameplay:
                         if k is not None:
                             window_x = 20 + 25 * k1
                             window_y = 65 + 25 * i1
-                            pygame.draw.rect(win, k.color, (window_x, window_y, 25, 25))
+                            if self.hold_locked:
+                                pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, 25, 25))
+                            else:
+                                pygame.draw.rect(win, k.color, (window_x, window_y, 25, 25))
                             pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, 25, 25), width=1)
                         k1 += 1
                     k1 = 0
@@ -804,6 +824,15 @@ class TetrisGameplay:
         win.blit(MEDIUM_FONT.render(f"{pps:6.2f}", 1, (255, 255, 255)), (0, 582))
         win.blit(MEDIUM_FONT.render("TIME", 1, (255, 255, 255)), (40, 622))
         win.blit(MEDIUM_FONT.render(f"{strfdelta(datetime.timedelta(seconds=self.game_time), '%m:%S'):>6s}", 1, (255, 255, 255)), (0, 642))
+        if self.mode > 0:
+            if self.mode == 1:
+                win.blit(MEDIUM_FONT.render("TIME", 1, (255, 255, 255)), (440, 482))
+                win.blit(MEDIUM_FONT.render(f"{strfdelta(datetime.timedelta(seconds=self.target), '%m:%S')}", 1, (255, 255, 255)), (440, 522))
+            elif self.mode == 2:
+                win.blit(MEDIUM_FONT.render("LINES", 1, (255, 255, 255)), (440, 482))
+                win.blit(MEDIUM_FONT.render(f"{self.target:5d}", 1, (255, 255, 255)), (440, 522))
+            win.blit(MEDIUM_FONT.render("LEFT", 1, (255, 255, 255)), (440, 502))
+
         if self.for_what_delay > 0.1:
             win.blit(FONT.render(self.for_what_score[self.for_what_id], 1, (230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25, 230*(min(self.for_what_delay, 1))+25)),
                      (300-int(FONT.size(self.for_what_score[self.for_what_id])[0]/2), 670))
@@ -825,9 +854,14 @@ class TetrisGameplay:
         if self.game_over:
             text_size_x = FONT.size("GAME")[0]
             pygame.draw.rect(win, (0, 0, 0), (223, 327, text_size_x+10, 60))
-            pygame.draw.rect(win, (255, 0, 0), (223, 327, text_size_x + 10, 60), width=2)
-            win.blit(FONT.render("GAME", 1, (255, 255, 255)), (230, 335))
-            win.blit(FONT.render("OVER", 1, (255, 255, 255)), (230, 360))
+            if self.mode > 0 and self.target <= 0:
+                pygame.draw.rect(win, (0, 255, 0), (223, 327, text_size_x + 10, 60), width=2)
+                win.blit(FONT.render("WELL", 1, (255, 255, 255)), (230, 335))
+                win.blit(FONT.render("DONE", 1, (255, 255, 255)), (230, 360))
+            else:
+                pygame.draw.rect(win, (255, 0, 0), (223, 327, text_size_x + 10, 60), width=2)
+                win.blit(FONT.render("GAME", 1, (255, 255, 255)), (230, 335))
+                win.blit(FONT.render("OVER", 1, (255, 255, 255)), (230, 360))
         pygame.display.update()
 
     def draw_game_stats(self):
@@ -884,8 +918,8 @@ class TetrisGameplay:
 
 
 class NesLikeTetris(TetrisGameplay):
-    def __init__(self, level=0):
-        super().__init__(level, 2, False, False, False, False, False, False, (267, 100), True, 1)
+    def __init__(self, mode=0, target=0):
+        super().__init__(mode, target, 2, False, False, False, False, False, False, (267, 100), True, 1)
         self.TETROMINOS = [
             [
                 [
@@ -1099,6 +1133,11 @@ class NesLikeTetris(TetrisGameplay):
 
         if cleared > 0:
             self.cleared_lines[cleared - 1] += cleared
+            if self.mode == 2:
+                self.target -= cleared
+                if self.target <= 0:
+                    self.target = 0
+                    self.game_over = True
             frames_delay += 18
             self.score_up = 0
             self.for_what_delay = 3
@@ -1198,6 +1237,14 @@ class NesLikeTetris(TetrisGameplay):
             win.blit(MEDIUM_FONT.render(f"{tetris_rate:02d}%", 1, (255, 255, 255)), (60, 582))
         win.blit(MEDIUM_FONT.render("TIME", 1, (255, 255, 255)), (40, 622))
         win.blit(MEDIUM_FONT.render(f"{strfdelta(datetime.timedelta(seconds=self.game_time), '%m:%S'):>6s}", 1, (255, 255, 255)), (0, 642))
+        if self.mode > 0:
+            if self.mode == 1:
+                win.blit(MEDIUM_FONT.render("TIME", 1, (255, 255, 255)), (440, 482))
+                win.blit(MEDIUM_FONT.render(f"{strfdelta(datetime.timedelta(seconds=self.target), '%m:%S')}", 1, (255, 255, 255)), (440, 522))
+            elif self.mode == 2:
+                win.blit(MEDIUM_FONT.render("LINES", 1, (255, 255, 255)), (440, 482))
+                win.blit(MEDIUM_FONT.render(f"{self.target:5d}", 1, (255, 255, 255)), (440, 522))
+            win.blit(MEDIUM_FONT.render("LEFT", 1, (255, 255, 255)), (440, 502))
         if self.for_what_delay > 0.1:
             win.blit(FONT.render(self.for_what_score[self.for_what_id], 1, (
             230 * (min(self.for_what_delay, 1)) + 25, 230 * (min(self.for_what_delay, 1)) + 25,
@@ -1211,9 +1258,14 @@ class NesLikeTetris(TetrisGameplay):
         if self.game_over:
             text_size_x = FONT.size("GAME")[0]
             pygame.draw.rect(win, (0, 0, 0), (223, 327, text_size_x + 10, 60))
-            pygame.draw.rect(win, (255, 0, 0), (223, 327, text_size_x + 10, 60), width=2)
-            win.blit(FONT.render("GAME", 1, (255, 255, 255)), (230, 335))
-            win.blit(FONT.render("OVER", 1, (255, 255, 255)), (230, 360))
+            if self.mode > 0 and self.target <= 0:
+                pygame.draw.rect(win, (0, 255, 0), (223, 327, text_size_x + 10, 60), width=2)
+                win.blit(FONT.render("WELL", 1, (255, 255, 255)), (230, 335))
+                win.blit(FONT.render("DONE", 1, (255, 255, 255)), (230, 360))
+            else:
+                pygame.draw.rect(win, (255, 0, 0), (223, 327, text_size_x + 10, 60), width=2)
+                win.blit(FONT.render("GAME", 1, (255, 255, 255)), (230, 335))
+                win.blit(FONT.render("OVER", 1, (255, 255, 255)), (230, 360))
         pygame.display.update()
 
     def draw_game_stats(self):
@@ -1259,13 +1311,20 @@ class NesLikeTetris(TetrisGameplay):
         pygame.display.update()
 
 
-def draw_main_menu(selected, sel_lvl, sel_gl):
+def draw_main_menu(selected, sel_gl, sel_md, sel_trg):
     win.fill((25, 25, 25))
     win.blit(FONT.render("PYTRIS by dan63047", 1, (255, 255, 255)), (25, 25))
     win.blit(FONT.render("›", 1, (255, 255, 255)), (25, 100 + 30 * selected))
     win.blit(FONT.render("Start", 1, (255, 255, 255)), (50, 100))
-    win.blit(FONT.render(f"Level: {sel_lvl:02d}", 1, (255, 255, 255)), (50, 130))  # ↑↓
-    win.blit(FONT.render(f"Guideline: {GUIDELINES[sel_gl]}", 1, (255, 255, 255)), (50, 160))
+    win.blit(FONT.render(f"Mode: {MODES[sel_md]}", 1, (255, 255, 255)), (50, 130))
+    if sel_md == 0:
+        win.blit(FONT.render(f"Level: {sel_trg:02d}", 1, (255, 255, 255)), (50, 160))  # ↑↓
+    elif sel_md == 1:
+        win.blit(FONT.render(f"Time: {strfdelta(datetime.timedelta(seconds=TIME_LIMITS_SEC[sel_trg]), '%H:%M:%S.%Z')}", 1, (255, 255, 255)), (50, 160))
+    elif sel_md == 2:
+        win.blit(FONT.render(f"Lines: {LINES_LIMITS[sel_trg]}", 1, (255, 255, 255)), (50, 160))
+    win.blit(FONT.render(f"Guideline: {GUIDELINES[sel_gl]}", 1, (255, 255, 255)), (50, 190))
+    win.blit(FONT.render(f"Exit", 1, (255, 255, 255)), (50, 220))
     pygame.display.update()
 
 
@@ -1273,6 +1332,8 @@ def main():
     GAME_RUN = True
     selected_level = [1, 0]
     selected_gl = 0
+    selected_mode = 0 # 0 - Endless; 1 - Time limit; 2 - Lines limit
+    selected_target = 0
     ticks_before_stats = 180
     g = 0
     delay_before_spawn = -1
@@ -1306,33 +1367,62 @@ def main():
                     pressed_keys.remove(i)
         keys = pygame.key.get_pressed()
         if state == "main menu":
-            draw_main_menu(menu_select, selected_level[selected_gl], selected_gl)
+            if selected_mode == 0:
+                draw_main_menu(menu_select, selected_gl, selected_mode, selected_level[selected_gl])
+            else:
+                draw_main_menu(menu_select, selected_gl, selected_mode, selected_target)
             if pygame.K_RETURN in pressed_keys:
                 if menu_select == 0:
                     state = "pregameplay"
-            if pygame.K_DOWN in pressed_keys and menu_select != 2:
+            if pygame.K_DOWN in pressed_keys and menu_select != 4:
                 menu_select += 1
             if pygame.K_UP in pressed_keys and menu_select != 0:
                 menu_select -= 1
-            if pygame.K_RIGHT in pressed_keys and menu_select == 1 and ((selected_gl == 0 and selected_level[selected_gl] != 15) or (selected_gl == 1 and selected_level[selected_gl] != 29)):
-                selected_level[selected_gl] += 1
-            elif pygame.K_LEFT in pressed_keys and menu_select == 1 and ((selected_gl == 0 and selected_level[selected_gl] != 1) or (selected_gl == 1 and selected_level[selected_gl] != 0)):
-                selected_level[selected_gl] -= 1
-            if pygame.K_RIGHT in pressed_keys and selected_gl != 1 and menu_select == 2:
+            if pygame.K_RIGHT in pressed_keys and selected_mode != 2 and menu_select == 1:
+                selected_mode += 1
+                selected_target = 0
+            elif pygame.K_LEFT in pressed_keys and selected_mode != 0 and menu_select == 1:
+                selected_mode -= 1
+                selected_target = 0
+            if selected_mode == 0:
+                if pygame.K_RIGHT in pressed_keys and menu_select == 2 and ((selected_gl == 0 and selected_level[selected_gl] != 15) or (selected_gl == 1 and selected_level[selected_gl] != 29)):
+                    selected_level[selected_gl] += 1
+                elif pygame.K_LEFT in pressed_keys and menu_select == 2 and ((selected_gl == 0 and selected_level[selected_gl] != 1) or (selected_gl == 1 and selected_level[selected_gl] != 0)):
+                    selected_level[selected_gl] -= 1
+            elif selected_mode == 1:
+                if pygame.K_RIGHT in pressed_keys and menu_select == 2 and selected_target != len(TIME_LIMITS_SEC)-1:
+                    selected_target += 1
+                elif pygame.K_LEFT in pressed_keys and menu_select == 2 and selected_target != 0:
+                    selected_target -= 1
+            elif selected_mode == 2:
+                if pygame.K_RIGHT in pressed_keys and menu_select == 2 and selected_target != len(LINES_LIMITS)-1:
+                    selected_target += 1
+                elif pygame.K_LEFT in pressed_keys and menu_select == 2 and selected_target != 0:
+                    selected_target -= 1
+            if pygame.K_RIGHT in pressed_keys and selected_gl != 1 and menu_select == 3:
                 selected_gl += 1
-            elif pygame.K_LEFT in pressed_keys and selected_gl != 0 and menu_select == 2:
+            elif pygame.K_LEFT in pressed_keys and selected_gl != 0 and menu_select == 3:
                 selected_gl -= 1
+            if pygame.K_RETURN in pressed_keys and menu_select == 4:
+                GAME_RUN = False
         elif state == "pregameplay":
             ticks_before_stats = 300
             delay_before_spawn = -1
-            if selected_gl == 0:
-                field = TetrisGameplay(selected_level[selected_gl])
-            elif selected_gl == 1:
-                field = NesLikeTetris(selected_level[selected_gl])
+            if selected_mode == 0:
+                if selected_gl == 0:
+                    field = TetrisGameplay(selected_mode, selected_level[selected_gl])
+                elif selected_gl == 1:
+                    field = NesLikeTetris(selected_mode, selected_level[selected_gl])
+            else:
+                if selected_gl == 0:
+                    field = TetrisGameplay(selected_mode, selected_target)
+                elif selected_gl == 1:
+                    field = NesLikeTetris(selected_mode, selected_target)
             pygame.key.set_repeat(field.handling[0], field.handling[1])
             state = "gameplay"
         elif state == "gameplay":
             field.draw_game()
+            frame_time = clock.get_time()/1000
             if not field.game_over:
                 if pygame.K_r in pressed_keys:
                     state = "pregameplay"
@@ -1367,9 +1457,14 @@ def main():
                     field.lock_delay_run = False
                     field.lock_delay_frames = 30
                     corrupted_keys.append(pygame.K_SPACE)
-                field.game_time += clock.get_time()/1000
+                field.game_time += frame_time
+                if field.mode == 1:
+                    field.target -= frame_time
+                    if field.target <= 0:
+                        field.target = 0
+                        field.game_over = True
             if field.for_what_delay > 0:
-                field.for_what_delay -= clock.get_time()/1000
+                field.for_what_delay -= frame_time
             if field.game_over:
                 ticks_before_stats -= 1
             if not field.game_over:
