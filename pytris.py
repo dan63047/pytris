@@ -4,7 +4,7 @@ import pygame, random, datetime
 from string import Template
 
 BLOCK_SIZE = 30
-GUIDELINES = ["Current", "NES like"]
+GUIDELINES = ["Modern", "Classic"]
 MODES = ["Endless", "Time limited", "Lines limited"]
 TIME_LIMITS_SEC = [120, 180, 300, 600, 1800, 3600, 86400]
 LINES_LIMITS = [40, 80, 120, 150, 300, 500, 1000]
@@ -43,7 +43,7 @@ def strfdelta(tdelta, fmt):
 
 
 class TetrisGameplay:
-    def __init__(self, mode=0, target=1, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
+    def __init__(self, mode=0, lvl=1, buffer_zone=20, srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
         self.buffer_y = buffer_zone
         self.FIELD = list(range(20 + buffer_zone))
         y = 0
@@ -293,17 +293,19 @@ class TetrisGameplay:
         self.spin_is_kick_t_piece = False
         self.current_spin_id = 0
         self.lock_delay_run = False
-        self.lock_delay_frames = 30
         if self.mode == 0:
-            self.level = target
-            self.start_level = target
+            self.level = lvl
+            self.start_level = lvl
         else:
             self.level = 1
             self.start_level = 1
+        self.level_limit = 30
+        self.lock_delay_f_limit = min(30, 90 - 3 * self.level)
+        self.lock_delay_frames = self.lock_delay_f_limit
         if self.mode == 1:
-            self.target = TIME_LIMITS_SEC[target]
+            self.lvl = TIME_LIMITS_SEC[lvl]
         elif self.mode == 2:
-            self.target = LINES_LIMITS[target]
+            self.lvl = LINES_LIMITS[lvl]
         self.lines_for_level_up = self.gravity_and_lines_table()[1]
         self.game_over = False
 
@@ -403,48 +405,49 @@ class TetrisGameplay:
             if t_spin:
                 difficult = True
                 if cleared == 1:
-                    self.score[10] += 800 * min(self.level, 15)
-                    self.score_up += 800 * min(self.level, 15)
+                    self.score[10] += 800 * min(self.level, self.level_limit)
+                    self.score_up += 800 * min(self.level, self.level_limit)
                     self.for_what_id = 8
                 elif cleared == 2:
-                    self.score[11] += 1200 * min(self.level, 15)
-                    self.score_up += 1200 * min(self.level, 15)
+                    self.score[11] += 1200 * min(self.level, self.level_limit)
+                    self.score_up += 1200 * min(self.level, self.level_limit)
                     self.for_what_id = 9
                 elif cleared == 3:
-                    self.score[12] += 1600 * min(self.level, 15)
-                    self.score_up += 1600 * min(self.level, 15)
+                    self.score[12] += 1600 * min(self.level, self.level_limit)
+                    self.score_up += 1600 * min(self.level, self.level_limit)
                     self.for_what_id = 10
             elif t_spin_mini:
                 difficult = True
                 if cleared == 1:
-                    self.score[7] += 200 * min(self.level, 15)
-                    self.score_up += 200 * min(self.level, 15)
+                    self.score[7] += 200 * min(self.level, self.level_limit)
+                    self.score_up += 200 * min(self.level, self.level_limit)
                     self.for_what_id = 5
                 elif cleared == 2:
-                    self.score[8] += 400 * min(self.level, 15)
-                    self.score_up += 400 * min(self.level, 15)
+                    self.score[8] += 400 * min(self.level, self.level_limit)
+                    self.score_up += 400 * min(self.level, self.level_limit)
                     self.for_what_id = 6
             else:
                 if cleared == 1:
-                    self.score[2] += 100 * min(self.level, 15)
-                    self.score_up += 100 * min(self.level, 15)
+                    self.score[2] += 100 * min(self.level, self.level_limit)
+                    self.score_up += 100 * min(self.level, self.level_limit)
                     self.for_what_id = 0
                 elif cleared == 2:
-                    self.score[3] += 300 * min(self.level, 15)
-                    self.score_up += 300 * min(self.level, 15)
+                    self.score[3] += 300 * min(self.level, self.level_limit)
+                    self.score_up += 300 * min(self.level, self.level_limit)
                     self.for_what_id = 1
                 elif cleared == 3:
-                    self.score[4] += 500 * min(self.level, 15)
-                    self.score_up += 500 * min(self.level, 15)
+                    self.score[4] += 500 * min(self.level, self.level_limit)
+                    self.score_up += 500 * min(self.level, self.level_limit)
                     self.for_what_id = 2
                 elif cleared == 4:
-                    self.score[5] += 800 * min(self.level, 15)
-                    self.score_up += 800 * min(self.level, 15)
+                    self.score[5] += 800 * min(self.level, self.level_limit)
+                    self.score_up += 800 * min(self.level, self.level_limit)
                     self.for_what_id = 3
                     difficult = True
-            if sum(self.cleared_lines) >= self.lines_for_level_up and self.level != 15:
+            if sum(self.cleared_lines) >= self.lines_for_level_up and self.level != self.level_limit:
                 self.level += 1
                 self.lines_for_level_up += 10
+                self.lock_delay_f_limit = min(30, 90 - 3 * self.level)
             if difficult:
                 self.back_to_back += 1
                 if self.back_to_back > 0:
@@ -453,19 +456,19 @@ class TetrisGameplay:
             else:
                 self.back_to_back = -1
             if self.combo > 0:
-                self.score[13] += 50 * self.combo * min(self.level, 15)
-                self.score_up += 50 * self.combo * min(self.level, 15)
+                self.score[13] += 50 * self.combo * min(self.level, self.level_limit)
+                self.score_up += 50 * self.combo * min(self.level, self.level_limit)
             self.for_what_delay = 3
         else:
             self.combo = -1
             if t_spin:
-                self.score[9] += 400 * min(self.level, 15)
-                self.score_up = 400 * min(self.level, 15)
+                self.score[9] += 400 * min(self.level, self.level_limit)
+                self.score_up = 400 * min(self.level, self.level_limit)
                 self.for_what_id = 7
                 self.for_what_delay = 3
             elif t_spin_mini:
-                self.score[6] += 100 * min(self.level, 15)
-                self.score_up = 100 * min(self.level, 15)
+                self.score[6] += 100 * min(self.level, self.level_limit)
+                self.score_up = 100 * min(self.level, self.level_limit)
                 self.for_what_id = 4
                 self.for_what_delay = 3
         return 0
@@ -713,7 +716,7 @@ class TetrisGameplay:
         return y
 
     def reset_lock_delay(self):
-        self.lock_delay_frames = 30
+        self.lock_delay_frames = self.lock_delay_f_limit
         self.lock_delay_run = False
 
     def move_down(self, instant=False):
@@ -761,7 +764,7 @@ class TetrisGameplay:
                     if k is not None:
                         window_x = 130 + BLOCK_SIZE * k1
                         window_y = (BLOCK_SIZE * 2 + 5) + BLOCK_SIZE * i1
-                        pygame.draw.rect(win, (int(k.color[0]*self.lock_delay_frames/30), int(k.color[1]*self.lock_delay_frames/30), int(k.color[2]*self.lock_delay_frames/30)), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
+                        pygame.draw.rect(win, (int(k.color[0]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1)), int(k.color[1]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1)), int(k.color[2]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1))), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
                         pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE), width=2)
                     k1 += 1
                 k1 = self.current_posx
@@ -917,7 +920,7 @@ class TetrisGameplay:
         pygame.display.update()
 
 
-class NesLikeTetris(TetrisGameplay):
+class ClassicTetris(TetrisGameplay):
     def __init__(self, mode=0, target=0):
         super().__init__(mode, target, 2, False, False, False, False, False, False, (267, 100), True, 1)
         self.TETROMINOS = [
@@ -1330,7 +1333,6 @@ def draw_main_menu(selected, sel_gl, sel_md, sel_trg):
 
 def main():
     GAME_RUN = True
-    selected_level = [1, 0]
     selected_gl = 0
     selected_mode = 0 # 0 - Endless; 1 - Time limit; 2 - Lines limit
     selected_target = 0
@@ -1367,10 +1369,7 @@ def main():
                     pressed_keys.remove(i)
         keys = pygame.key.get_pressed()
         if state == "main menu":
-            if selected_mode == 0:
-                draw_main_menu(menu_select, selected_gl, selected_mode, selected_level[selected_gl])
-            else:
-                draw_main_menu(menu_select, selected_gl, selected_mode, selected_target)
+            draw_main_menu(menu_select, selected_gl, selected_mode, selected_target)
             if pygame.K_RETURN in pressed_keys:
                 if menu_select == 0:
                     state = "pregameplay"
@@ -1385,10 +1384,10 @@ def main():
                 selected_mode -= 1
                 selected_target = 0
             if selected_mode == 0:
-                if pygame.K_RIGHT in pressed_keys and menu_select == 2 and ((selected_gl == 0 and selected_level[selected_gl] != 15) or (selected_gl == 1 and selected_level[selected_gl] != 29)):
-                    selected_level[selected_gl] += 1
-                elif pygame.K_LEFT in pressed_keys and menu_select == 2 and ((selected_gl == 0 and selected_level[selected_gl] != 1) or (selected_gl == 1 and selected_level[selected_gl] != 0)):
-                    selected_level[selected_gl] -= 1
+                if pygame.K_RIGHT in pressed_keys and menu_select == 2 and selected_target != 30:
+                    selected_target += 1
+                elif pygame.K_LEFT in pressed_keys and menu_select == 2 and selected_target != 0:
+                    selected_target -= 1
             elif selected_mode == 1:
                 if pygame.K_RIGHT in pressed_keys and menu_select == 2 and selected_target != len(TIME_LIMITS_SEC)-1:
                     selected_target += 1
@@ -1408,16 +1407,10 @@ def main():
         elif state == "pregameplay":
             ticks_before_stats = 300
             delay_before_spawn = -1
-            if selected_mode == 0:
-                if selected_gl == 0:
-                    field = TetrisGameplay(selected_mode, selected_level[selected_gl])
-                elif selected_gl == 1:
-                    field = NesLikeTetris(selected_mode, selected_level[selected_gl])
-            else:
-                if selected_gl == 0:
-                    field = TetrisGameplay(selected_mode, selected_target)
-                elif selected_gl == 1:
-                    field = NesLikeTetris(selected_mode, selected_target)
+            if selected_gl == 0:
+                field = TetrisGameplay(selected_mode, selected_target)
+            elif selected_gl == 1:
+                field = ClassicTetris(selected_mode, selected_target)
             pygame.key.set_repeat(field.handling[0], field.handling[1])
             state = "gameplay"
         elif state == "gameplay":
