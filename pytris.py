@@ -1386,25 +1386,50 @@ class BotAI:
         self.skill = 0
         self.name = "Bot"
         self.state = "idle"
-        self.intersection = False
+        self.selected_move = (None, None) # rot, pos
 
     def generate_moves(self, field):
         test_spin_id = 0
         test_mino_id = field.current_id
-        test_hold_mino_id = field.hold_id if not None else field.next_queue[0]
+        test_hold_mino_id = field.hold_id if field.hold_id else field.next_queue[0]
         moves = []
-        return 0, 4
+        while test_spin_id < len(field.TETROMINOS[test_mino_id]):
+            x = 0
+            while x < len(field.FIELD[0]):
+                if not field.collision(x, 0, test_mino_id, test_spin_id):
+                    y = field.current_posy
+                    while not field.collision(x, y + 1, test_mino_id, test_spin_id):
+                        y += 1
+                    moves.append((test_spin_id, x, y, False))
+                x += 1
+            test_spin_id += 1
+        test_spin_id = 0
+        while test_spin_id < len(field.TETROMINOS[test_hold_mino_id]):
+            x = 0
+            while x < len(field.FIELD[0]):
+                if not field.collision(x, 0, test_hold_mino_id, test_spin_id):
+                    y = field.current_posy
+                    while not field.collision(x, y + 1, test_hold_mino_id, test_spin_id):
+                        y += 1
+                    moves.append((test_spin_id, x, y, True))
+                x += 1
+            test_spin_id += 1
+        answer = random.choice(moves)
+        return answer[0], answer[1]
 
 
     def run_ai(self, field):
-        rotation, position = self.generate_moves(field)
-        if field.current_spin_id != rotation:
+        if self.selected_move == (None, None):
+            self.selected_move = self.generate_moves(field)
+            print(self.selected_move)
+        if field.current_spin_id != self.selected_move[0] and field.current_id != 6:
             return "S+"
-        elif field.current_posx < position:
+        elif field.current_posx < self.selected_move[1]:
             return "R"
-        elif field.current_posx > position:
+        elif field.current_posx > self.selected_move[1]:
             return "L"
         else:
+            self.selected_move = (None, None)
             return "HD"
 
 
