@@ -47,10 +47,12 @@ def strfdelta(tdelta, fmt):
 
 
 class TetrisGameplay:
-    def __init__(self, mode=0, lvl=1, buffer_zone=20, player="P1", srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4):
+    def __init__(self, mode=0, lvl=1, buffer_zone=20, player="P1", srs=True, lock_delay=True, seven_bag=True, ghost_piece=True, hold=True, hard_drop=True, handling=(167, 33), nes_mechanics=False, next_len=4, seed=random.randint(-2147483648, 2147483647)):
         self.buffer_y = buffer_zone
         self.FIELD = list(range(20 + buffer_zone))
         y = 0
+        self.seed = seed
+        self.randomiser = random.Random(seed)
         while y != len(self.FIELD):
             self.FIELD[y] = list(range(10))
             x = 0
@@ -290,12 +292,12 @@ class TetrisGameplay:
         self.send_attack = 0
         if self.seven_bag_random:
             self.next_queue = [0, 1, 2, 3, 4, 5, 6]
-            random.shuffle(self.next_queue)
+            self.randomiser.shuffle(self.next_queue)
             self.current_id = self.next_queue[0]
             self.next_queue.pop(0)
         else:
-            self.current_id = random.randint(0, 6)
-            self.next_queue = [random.randint(0, 6) for i in range(self.next_length+1)]
+            self.current_id = self.randomiser.randint(0, 6)
+            self.next_queue = [self.randomiser.randint(0, 6) for i in range(self.next_length+1)]
         self.hold_id = None
         self.hold_locked = False
         self.spin_is_last_move = False
@@ -337,10 +339,10 @@ class TetrisGameplay:
         if len(self.next_queue) == self.next_length:
             if self.seven_bag_random:
                 next_bag = [0, 1, 2, 3, 4, 5, 6]
-                random.shuffle(next_bag)
+                self.randomiser.shuffle(next_bag)
                 self.next_queue.extend(next_bag)
             else:
-                ext = [random.randint(0, 6) for i in range(self.next_length+1)]
+                ext = [self.randomiser.randint(0, 6) for i in range(self.next_length+1)]
                 self.next_queue.extend(ext)
 
     def hold_tetromino(self):
@@ -403,6 +405,7 @@ class TetrisGameplay:
             elif back_col == 2 and front_col == 1:
                 t_spin_mini = True
         y = len(self.FIELD)
+        for_all_clear = y
         for i in self.FIELD:
             ic = sum(k is not None for k in i)
             if ic == 10:
@@ -414,26 +417,26 @@ class TetrisGameplay:
                     new[x] = None
                     x += 1
                 self.FIELD.insert(0, new)
+                for_all_clear -= 1
+            elif ic == 0:
+                for_all_clear -= 1
             y -= 1
             if ic > 0 and height is None:
                 height = y
-
+        all_clear = for_all_clear == 0
         if cleared > 0:
             difficult = False
-            self._extracted_from_clear_lines_58(cleared, t_spin, difficult, t_spin_mini)
+            self.count_clear(cleared, t_spin, difficult, t_spin_mini, all_clear)
         else:
             self.combo = -1
             if t_spin:
-                self._extracted_from_clear_lines_125(9, 400, 7, t_spin, t_spin_mini)
+                self.count_no_clear_spin(9, 400, 7, t_spin, t_spin_mini)
             elif t_spin_mini:
-                self._extracted_from_clear_lines_125(6, 100, 4, t_spin, t_spin_mini)
+                self.count_no_clear_spin(6, 100, 4, t_spin, t_spin_mini)
         self.attack += self.send_attack
-        if self.support_garbage:
-            return 0, self.send_attack
-        else:
-            return 0
+        return (0, self.send_attack) if self.support_garbage else 0
 
-    def _extracted_from_clear_lines_58(self, cleared, t_spin, difficult, t_spin_mini):
+    def count_clear(self, cleared, t_spin, difficult, t_spin_mini, all_clear):
         self.cleared_lines[cleared - 1] += cleared
         wt = 0
         if self.mode == 2:
@@ -473,35 +476,59 @@ class TetrisGameplay:
                 self.score_up += 400 * min(self.level, self.level_limit)
                 wt = 6
         elif cleared == 1:
-            self.send_attack = 0
-            self.score[2] += 100 * min(self.level, self.level_limit)
-            self.score_up += 100 * min(self.level, self.level_limit)
+            if all_clear:
+                self.send_attack = 10
+                self.score[2] += 800 * min(self.level, self.level_limit)
+                self.score_up += 800 * min(self.level, self.level_limit)
+            else:
+                self.send_attack = 0
+                self.score[2] += 100 * min(self.level, self.level_limit)
+                self.score_up += 100 * min(self.level, self.level_limit)
             wt = 0
         elif cleared == 2:
-            self.send_attack = 1
-            self.score[3] += 300 * min(self.level, self.level_limit)
-            self.score_up += 300 * min(self.level, self.level_limit)
+            if all_clear:
+                self.send_attack = 11
+                self.score[3] += 1200 * min(self.level, self.level_limit)
+                self.score_up += 1200 * min(self.level, self.level_limit)
+            else:
+                self.send_attack = 1
+                self.score[3] += 300 * min(self.level, self.level_limit)
+                self.score_up += 300 * min(self.level, self.level_limit)
             wt = 1
         elif cleared == 3:
-            self.send_attack = 2
-            self.score[4] += 500 * min(self.level, self.level_limit)
-            self.score_up += 500 * min(self.level, self.level_limit)
+            if all_clear:
+                self.send_attack = 12
+                self.score[4] += 1800 * min(self.level, self.level_limit)
+                self.score_up += 1800 * min(self.level, self.level_limit)
+            else:
+                self.send_attack = 2
+                self.score[4] += 500 * min(self.level, self.level_limit)
+                self.score_up += 500 * min(self.level, self.level_limit)
             wt = 2
         elif cleared == 4:
-            self.send_attack = 4
-            self.score[5] += 800 * min(self.level, self.level_limit)
-            self.score_up += 800 * min(self.level, self.level_limit)
+            if all_clear:
+                self.send_attack = 14
+                self.score[5] += 2000 * min(self.level, self.level_limit)
+                self.score_up += 2000 * min(self.level, self.level_limit)
+            else:
+                self.send_attack = 4
+                self.score[5] += 800 * min(self.level, self.level_limit)
+                self.score_up += 800 * min(self.level, self.level_limit)
             wt = 3
             difficult = True
-        if sum(self.cleared_lines) >= self.lines_for_level_up and self.level != self.level_limit and self.mode != 3:
+        if sum(self.cleared_lines) >= self.lines_for_level_up and self.level != self.level_limit and self.mode == 0:
             self.level += 1
             self.lines_for_level_up += 10
             self.lock_delay_f_limit = min(30, 90 - 3 * self.level)
         if difficult:
             self.back_to_back += 1
             if self.back_to_back > 0:
-                self.score[14] += int((self.score_up*3/2) - self.score_up)
-                self.score_up += int((self.score_up*3/2) - self.score_up)
+                if all_clear:
+                    self.score[14] += 1200*min(self.level, self.level_limit)
+                    self.score_up += 1200*min(self.level, self.level_limit)
+                else:
+                    self.score[14] += int((self.score_up*3/2) - self.score_up)
+                    self.score_up += int((self.score_up*3/2) - self.score_up)
                 self.send_attack += 1
         else:
             self.back_to_back = -1
@@ -511,10 +538,10 @@ class TetrisGameplay:
             self.score_up += 50 * self.combo * min(self.level, self.level_limit)
         self.notification = {"for_what": wt, "mode": "score", "number": self.score_up, "combo": self.combo,
                              "b2b": self.back_to_back, "t-spin": t_spin, "t-spin_mini": t_spin_mini,
-                             "pc": False, "game_time": self.game_time}
+                             "pc": all_clear, "game_time": self.game_time}
         self.for_what_delay = 3
 
-    def _extracted_from_clear_lines_125(self, wt_id, scr, what, t_spin, t_spin_mini):
+    def count_no_clear_spin(self, wt_id, scr, what, t_spin, t_spin_mini):
         self.score[wt_id] += scr * min(self.level, self.level_limit)
         self.score_up = scr * min(self.level, self.level_limit)
         self.notification = {"for_what": what, "mode": "score", "number": scr, "combo": self.combo, "b2b": self.back_to_back, "t-spin": t_spin, "t-spin_mini": t_spin_mini, "pc": False, "game_time": self.game_time}
@@ -532,181 +559,65 @@ class TetrisGameplay:
         return False
 
     def spin(self, reverse=False):
-        if self.current_id is not None and self.current_id != 6:
-            if reverse:
-                future_spin_id = self.current_spin_id - 1
+        if self.current_id is None or self.current_id == 6:
+            return
+        if reverse:
+            future_spin_id = self.current_spin_id - 1
+        else:
+            future_spin_id = self.current_spin_id + 1
+        future_spin_id %= len(self.TETROMINOS[self.current_id])
+        KICK_TABLE =   [[(-1, 0),(-1, 1),( 0,-2),(-1,-2)],
+                        [( 1, 0),( 1,-1),( 0, 2),( 1, 2)],
+                        [( 1, 0),( 1, 1),( 0,-2),( 1,-2)], 
+                        [(-1, 0),(-1,-1),( 0, 2),(-1, 2)]]
+        KICK_TABLE_I = [[(-2, 0),( 1, 0),(-2,-1),( 1, 2)],
+                        [(-1, 0),( 2, 0),(-1, 2),( 2,-1)],
+                        [( 2, 0),(-1, 0),( 2, 1),(-1,-2)],
+                        [( 1, 0),(-2, 0),( 1,-2),(-2, 1)]]
+        if not self.collision(self.current_posx, self.current_posy, self.current_id, future_spin_id):
+            self.current_spin_id = future_spin_id
+            self.spin_is_last_move = True
+        elif self.support_srs:
+            if self.current_id is not None and self.current_id != 5:
+                if reverse:
+                    for kick in KICK_TABLE[future_spin_id]:
+                        if not self.collision(self.current_posx-kick[0], self.current_posy+kick[1], self.current_id, future_spin_id):
+                            self.current_posx -= kick[0]
+                            self.current_posy += kick[1]
+                            self.current_spin_id = future_spin_id
+                            self.spin_is_last_move = True
+                            break
+                else:
+                    for kick in KICK_TABLE[self.current_spin_id]:
+                        if not self.collision(self.current_posx+kick[0], self.current_posy-kick[1], self.current_id, future_spin_id):
+                            self.current_posx += kick[0]
+                            self.current_posy -= kick[1]
+                            self.current_spin_id = future_spin_id
+                            self.spin_is_last_move = True
+                            break
+            elif reverse:
+                for kick in KICK_TABLE_I[future_spin_id]:
+                    if not self.collision(self.current_posx-kick[0], self.current_posy+kick[1], self.current_id, future_spin_id):
+                        self.current_posx -= kick[0]
+                        self.current_posy += kick[1]
+                        self.current_spin_id = future_spin_id
+                        self.spin_is_last_move = True
+                        break
             else:
-                future_spin_id = self.current_spin_id + 1
-            future_spin_id %= len(self.TETROMINOS[self.current_id])
-            if not self.collision(self.current_posx, self.current_posy, self.current_id, future_spin_id):
-                self.current_spin_id = future_spin_id
-                self.spin_is_last_move = True
-            if self.support_srs:
-                if self.current_id is not None and self.current_id != 5:
-                    if self.current_spin_id in [0, 2] and future_spin_id == 1:
-                        if not self.collision(self.current_posx-1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-1, self.current_posy-1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.current_posy -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx, self.current_posy+2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posy += 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-1, self.current_posy+2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.current_posy += 2
-                            self.spin_is_last_move = True
-                            self.spin_is_kick_t_piece = True
-                    elif self.current_spin_id == 1 and (future_spin_id == 0 or future_spin_id == 2):
-                        if not self.collision(self.current_posx+1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy+1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx, self.current_posy-2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posy -= 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy-2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy -= 2
-                            self.spin_is_last_move = True
-                            self.spin_is_kick_t_piece = True
-                    elif (self.current_spin_id == 0 or self.current_spin_id == 2) and future_spin_id == 3:
-                        if not self.collision(self.current_posx+1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy-1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx, self.current_posy+2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posy += 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy+2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy += 2
-                            self.spin_is_last_move = True
-                            self.spin_is_kick_t_piece = True
-                    elif self.current_spin_id == 3 and future_spin_id in [0, 2]:
-                        if not self.collision(self.current_posx-1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy+1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.current_posy += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx, self.current_posy-2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posy -= 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy-2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy -= 2
-                            self.spin_is_last_move = True
-                            self.spin_is_kick_t_piece = True
-                else:
-                    if (self.current_spin_id == 0 and future_spin_id == 1) or (self.current_spin_id == 3 and future_spin_id == 2):
-                        if not self.collision(self.current_posx-2, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-2, self.current_posy+1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 2
-                            self.current_posy += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy-2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy -= 2
-                            self.spin_is_last_move = True
-                    elif (self.current_spin_id == 1 and future_spin_id == 0) or (self.current_spin_id == 2 and future_spin_id == 3):
-                        if not self.collision(self.current_posx+2, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+2, self.current_posy-1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 2
-                            self.current_posy -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-1, self.current_posy+2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.current_posy += 2
-                            self.spin_is_last_move = True
-                    elif (self.current_spin_id == 1 and future_spin_id == 2) or (self.current_spin_id == 0 and future_spin_id == 3):
-                        if not self.collision(self.current_posx-1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+2, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-1, self.current_posy-2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 1
-                            self.current_posy -= 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+2, self.current_posy+1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 2
-                            self.current_posy += 1
-                            self.spin_is_last_move = True
-                    elif (self.current_spin_id == 2 and future_spin_id == 1) or (self.current_spin_id == 3 and future_spin_id == 0):
-                        if not self.collision(self.current_posx+1, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-2, self.current_posy, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx+1, self.current_posy+2, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx += 1
-                            self.current_posy += 2
-                            self.spin_is_last_move = True
-                        elif not self.collision(self.current_posx-2, self.current_posy-1, self.current_id, future_spin_id):
-                            self.current_spin_id = future_spin_id
-                            self.current_posx -= 2
-                            self.current_posy -= 1
-                            self.spin_is_last_move = True
-            if self.lock_delay_run:
-                if self.lock_delay_times_left > 0:
-                    self.reset_lock_delay()
-                    if self.collision(self.current_posx, self.current_posy+1, self.current_id, self.current_spin_id):
-                        self.lock_delay_run = True
-                else:
-                    self.lock_delay_frames = 0
+                for kick in KICK_TABLE_I[self.current_spin_id]:
+                    if not self.collision(self.current_posx+kick[0], self.current_posy-kick[1], self.current_id, future_spin_id):
+                        self.current_posx += kick[0]
+                        self.current_posy -= kick[1]
+                        self.current_spin_id = future_spin_id
+                        self.spin_is_last_move = True
+                        break
+        if self.lock_delay_run:
+            if self.lock_delay_times_left > 0:
+                self.reset_lock_delay()
+                if self.collision(self.current_posx, self.current_posy+1, self.current_id, self.current_spin_id):
+                    self.lock_delay_run = True
+            else:
+                self.lock_delay_frames = 0
 
     def move_side(self, x_change):
         if self.current_id is not None and not self.collision(self.current_posx + x_change, self.current_posy, self.current_id, self.current_spin_id):
@@ -815,7 +726,10 @@ class TetrisGameplay:
                     if k is not None:
                         window_x = 130 + BLOCK_SIZE * k1
                         window_y = (BLOCK_SIZE * 2 + 5) + BLOCK_SIZE * i1
-                        pygame.draw.rect(win, (int(k.color[0]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1)), int(k.color[1]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1)), int(k.color[2]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1))), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
+                        try:
+                            pygame.draw.rect(win, (int(k.color[0]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1)), int(k.color[1]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1)), int(k.color[2]*self.lock_delay_frames/max(self.lock_delay_f_limit, 1))), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
+                        except ValueError:
+                            pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE))
                         pygame.draw.rect(win, (0, 0, 0), (window_x, window_y, BLOCK_SIZE, BLOCK_SIZE), width=2)
                     k1 += 1
                 k1 = self.current_posx
@@ -833,6 +747,8 @@ class TetrisGameplay:
                     k1 = self.current_posx
                     i1 += 1
         y_offset = 0
+        win.blit(SMALL_FONT.render(f"{self.seed}", 1, (255, 255, 255)), (430, 30))
+        win.blit(SMALL_FONT.render(f"#{sum(self.pieces)}", 1, (255, 255, 255)), (430, 45))
         for q in range(0, self.next_length):
             i1 = 0
             k1 = 0
@@ -888,7 +804,11 @@ class TetrisGameplay:
             win.blit(MEDIUM_FONT.render("LEFT", 1, (255, 255, 255)), (440, 502))
 
         if self.notification['for_what'] is not None and self.notification['game_time']+2.9 >= self.game_time:
-            win.blit(FONT.render(self.for_what_score[self.notification['for_what']], 1, (230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25)),
+            if self.notification['pc']:
+                win.blit(FONT.render(self.for_what_score[self.notification['for_what']]+" PERFECT CLEAR", 1, (230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25)),
+                     (300-int(FONT.size(self.for_what_score[self.notification['for_what']]+" PERFECT CLEAR")[0]/2), 670))
+            else:
+                win.blit(FONT.render(self.for_what_score[self.notification['for_what']], 1, (230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25)),
                      (300-int(FONT.size(self.for_what_score[self.notification['for_what']])[0]/2), 670))
             win.blit(
                 FONT.render(f"+{self.notification['number']}", 1, (230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25, 230*(min(self.notification['game_time']+3-self.game_time, 1))+25)),
@@ -972,8 +892,8 @@ class TetrisGameplay:
 
 
 class ClassicTetris(TetrisGameplay):
-    def __init__(self, mode=0, target=0, player="P1"):
-        super().__init__(mode, target, 2, player, False, False, False, False, False, False, (267, 100), True, 1)
+    def __init__(self, mode=0, target=0, player="P1", seed=random.randint(-2147483648, 2147483647)):
+        super().__init__(mode, target, 2, player, False, False, False, False, False, False, (267, 100), True, 1, seed)
         self.TETROMINOS = [
             [
                 [
@@ -1246,6 +1166,8 @@ class ClassicTetris(TetrisGameplay):
                 k1 = self.current_posx
                 i1 += 1
         x_offset = 0
+        win.blit(SMALL_FONT.render(f"{self.seed}", 1, (255, 255, 255)), (430, 30))
+        win.blit(SMALL_FONT.render(f"#{sum(self.pieces)}", 1, (255, 255, 255)), (430, 45))
         for q in range(0, self.next_length):
             i1 = 0
             k1 = 0
@@ -1354,7 +1276,7 @@ class ClassicTetris(TetrisGameplay):
             tetris_rate = self.cleared_lines[3] / total_lines
         except ZeroDivisionError:
             tetris_rate = 0
-        win.blit(FONT.render(f"TETRIS RATE {tetris_rate:10.2%}", 1, (255, 255, 255)), (25, 190))
+        win.blit(FONT.render(f"QUAD RATE {tetris_rate:12.2%}", 1, (255, 255, 255)), (25, 190))
         win.blit(FONT.render(f"LEVELS           {self.start_level:02d}-{self.level:02d}", 1, (255, 255, 255)), (25, 220))
         win.blit(
             FONT.render(f"TIME {strfdelta(datetime.timedelta(seconds=self.game_time), '%H:%M:%S.%Z'):>17s}", 1, (255, 255, 255)),
@@ -1388,6 +1310,9 @@ class BotAI:
         self.state = "idle"
         self.selected_move = (None, None) # rot, pos
 
+    def holes_and_wells(self, board):
+        pass
+
     def generate_moves(self, field):
         test_spin_id = 0
         test_mino_id = field.current_id
@@ -1419,18 +1344,19 @@ class BotAI:
 
 
     def run_ai(self, field):
-        if self.selected_move == (None, None):
-            self.selected_move = self.generate_moves(field)
-            print(self.selected_move)
-        if field.current_spin_id != self.selected_move[0] and field.current_id != 6:
-            return "S+"
-        elif field.current_posx < self.selected_move[1]:
-            return "R"
-        elif field.current_posx > self.selected_move[1]:
-            return "L"
-        else:
-            self.selected_move = (None, None)
-            return "HD"
+        pass
+        # if self.selected_move == (None, None):
+        #     self.selected_move = self.generate_moves(field)
+        #     print(self.selected_move)
+        # if field.current_spin_id != self.selected_move[0] and field.current_id != 6:
+        #     return "S+"
+        # elif field.current_posx < self.selected_move[1]:
+        #     return "R"
+        # elif field.current_posx > self.selected_move[1]:
+        #     return "L"
+        # else:
+        #     self.selected_move = (None, None)
+        #     return "HD"
 
 
 
@@ -1713,17 +1639,18 @@ def main():
         elif state == "pregameplay":
             ticks_before_stats = 300
             delay_before_spawn = -1
+            seed = random.randint(-2147483648, 2147483647)
             if selected_gl == 0:
-                session = [TetrisGameplay(selected_mode, max(selected_target, 1))] if selected_mode == 0 else [TetrisGameplay(selected_mode, selected_target)]
+                session = [TetrisGameplay(selected_mode, max(selected_target, 1), seed=seed)] if selected_mode == 0 else [TetrisGameplay(selected_mode, selected_target, seed=seed)]
                 if selected_mode == 3:
-                    session.append(TetrisGameplay(selected_mode, selected_target, player=BotAI()))
+                    session.append(TetrisGameplay(selected_mode, selected_target, player=BotAI(), seed=seed))
                     bots_tread = threading.Thread(name="pendehos", target=mind_of_stupid_idiot, daemon=True)
                     bots_tread.start()
                     pygame.display.set_mode((1200, 800))
             elif selected_gl == 1:
-                session = [ClassicTetris(selected_mode, selected_target)]
+                session = [ClassicTetris(selected_mode, selected_target, seed=seed)]
                 if selected_mode == 3:
-                    session.append(ClassicTetris(selected_mode, selected_target, BotAI()))
+                    session.append(ClassicTetris(selected_mode, selected_target, BotAI(), seed=seed))
                     bots_tread = threading.Thread(name="pendehos", target=mind_of_stupid_idiot, daemon=True)
                     bots_tread.start()
                     pygame.display.set_mode((1200, 800))
