@@ -1,3 +1,4 @@
+from http.client import SWITCHING_PROTOCOLS
 import time
 from typing import List
 import pygame, random, datetime, threading
@@ -222,15 +223,15 @@ class TetrisGameplay:
             ],  # 5, I
             [
                 [
-                    [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
-                    [Block((255, 240, 0)), Block((255, 240, 0)), None, None],
+                    [None, Block((255, 240, 0)), Block((255, 240, 0)), None],
+                    [None, Block((255, 240, 0)), Block((255, 240, 0)), None],
                     [None, None, None, None],
                     [None, None, None, None]
                 ]
             ]   # 6, O
         ]
         self.g = 0
-        self.current_posx = 4
+        self.current_posx = 3
         self.player = player
         self.current_posy = self.buffer_y - 2
         self.can_hard_drop = hard_drop
@@ -316,10 +317,13 @@ class TetrisGameplay:
         self.lock_delay_times_left = 15
         if self.mode == 1:
             self.target = TIME_LIMITS_SEC[lvl]
+            self.objective = TIME_LIMITS_SEC[lvl]
         elif self.mode == 2:
             self.target = LINES_LIMITS[lvl]
+            self.objective = LINES_LIMITS[lvl]
         elif self.mode == 3:
             self.target = 1
+            self.objective = 1
             self.support_garbage = True
         self.lines_for_level_up = self.gravity_and_lines_table()[1]
         self.game_over = False
@@ -327,7 +331,7 @@ class TetrisGameplay:
     def spawn_tetromino(self):
         if self.collision(4, self.buffer_y-2, self.next_queue[0], 0):
             self.game_over = True
-        self.current_posx = 4
+        self.current_posx = 3
         self.current_posy = self.buffer_y - 2
         self.current_id = self.next_queue[0]
         self.hold_locked = False
@@ -336,6 +340,9 @@ class TetrisGameplay:
         self.lock_delay_times_left = 15
         self.current_spin_id = 0
         self.next_queue.pop(0)
+        if self.gravity_and_lines_table()[0] >= 20:
+            while not self.collision(self.current_posx, self.current_posy+1, self.current_id, self.current_spin_id):
+                self.current_posy += 1
         if len(self.next_queue) == self.next_length:
             if self.seven_bag_random:
                 next_bag = [0, 1, 2, 3, 4, 5, 6]
@@ -349,6 +356,7 @@ class TetrisGameplay:
         self.current_spin_id = 0
         self.spin_is_kick_t_piece = False
         self.reset_lock_delay()
+        self.lock_delay_times_left = 15
         if self.hold_id is not None:
             self.current_id, self.hold_id = self.hold_id, self.current_id
             self.current_posx = 4
@@ -699,7 +707,6 @@ class TetrisGameplay:
             self.lock_delay_frames = 30
             self.lock_delay_times_left = 15
 
-
     def draw_game(self):
         win.fill((25, 25, 25))
         pygame.draw.rect(win, (0, 0, 0),
@@ -784,8 +791,16 @@ class TetrisGameplay:
         win.blit(MEDIUM_FONT.render(f"{sum(self.score):5d}", 1, (255, 255, 255)), (440, 582))
         win.blit(MEDIUM_FONT.render("LINES", 1, (255, 255, 255)), (440, 622))
         win.blit(MEDIUM_FONT.render(f"{sum(self.cleared_lines):5d}", 1, (255, 255, 255)), (440, 642))
-        win.blit(MEDIUM_FONT.render("LV", 1, (255, 255, 255)), (80, 502))
-        win.blit(MEDIUM_FONT.render(f"{self.level:02d}", 1, (255, 255, 255)), (80, 522))
+        match(self.mode):
+            case 0:
+                win.blit(MEDIUM_FONT.render("LV", 1, (255, 255, 255)), (80, 502))
+                win.blit(MEDIUM_FONT.render(f"{self.level:02d}", 1, (255, 255, 255)), (80, 522))
+            case 1:
+                win.blit(MEDIUM_FONT.render(f"{strfdelta(datetime.timedelta(seconds=self.objective), '%H:%M'):>6s}", 1, (255, 255, 255)), (0, 502))
+                win.blit(MEDIUM_FONT.render(f"TIME", 1, (255, 255, 255)), (40, 522))
+            case 2:
+                win.blit(MEDIUM_FONT.render(f"{self.objective:5d}", 1, (255, 255, 255)), (20, 502))
+                win.blit(MEDIUM_FONT.render(f"LINES", 1, (255, 255, 255)), (20, 522))
         win.blit(MEDIUM_FONT.render("PPS", 1, (255, 255, 255)), (60, 562))
         try:
             pps = sum(self.pieces) / self.game_time
